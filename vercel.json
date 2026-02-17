@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/pending-report",
+      "schedule": "0 9 18 * *"
+    }
+  ]
+}

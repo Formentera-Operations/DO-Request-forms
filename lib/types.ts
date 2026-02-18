@@ -12,14 +12,10 @@ export interface VoidCheckSubmission {
   attachments?: string[];
 }
 
-export interface OwnerOption {
-  owner_number: string;
-  owner_name: string;
-}
-
 export interface CheckOption {
   check_number: string;
-  check_description: string;
+  owner_number: string;
+  owner_name: string;
 }
 
 export type TabView = 'new-entry' | 'submissions';

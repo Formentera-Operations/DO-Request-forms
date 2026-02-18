@@ -3,14 +3,10 @@ import snowflake from 'snowflake-sdk';
 // Configure Snowflake to use fewer resources
 snowflake.configure({ logLevel: 'ERROR' });
 
-export interface SnowflakeOwner {
-  OWNER_NUMBER: string;
-  OWNER_NAME: string;
-}
-
 export interface SnowflakeCheck {
   CHECK_NUMBER: string;
-  CHECK_DESCRIPTION: string;
+  ENTITY_CODE: string;
+  ENTITY_NAME: string;
 }
 
 /**
@@ -59,37 +55,16 @@ export async function querySnowflake<T = any>(
 }
 
 /**
- * Fetch owner numbers from Snowflake.
- *
- * TODO: Update the SQL query below to match your actual
- * Snowflake table/view name and column names.
- */
-export async function getOwners(search?: string): Promise<SnowflakeOwner[]> {
-  let sql = `SELECT OWNER_NUMBER, OWNER_NAME FROM OWNERS`;
-  const binds: any[] = [];
-
-  if (search && search.trim()) {
-    sql += ` WHERE OWNER_NUMBER ILIKE ? OR OWNER_NAME ILIKE ?`;
-    binds.push(`%${search}%`, `%${search}%`);
-  }
-
-  sql += ` ORDER BY OWNER_NUMBER LIMIT 50`;
-  return querySnowflake<SnowflakeOwner>(sql, binds);
-}
-
-/**
- * Fetch check numbers from Snowflake.
- *
- * TODO: Update the SQL query below to match your actual
- * Snowflake table/view name and column names.
+ * Fetch checks from DIM_REVENUE_CHECK_REGISTER.
+ * Returns CHECK_NUMBER with associated ENTITY_CODE and ENTITY_NAME.
  */
 export async function getChecks(search?: string): Promise<SnowflakeCheck[]> {
-  let sql = `SELECT CHECK_NUMBER, CHECK_DESCRIPTION FROM CHECKS`;
+  let sql = `SELECT DISTINCT CHECK_NUMBER, ENTITY_CODE, ENTITY_NAME FROM DIM_REVENUE_CHECK_REGISTER`;
   const binds: any[] = [];
 
   if (search && search.trim()) {
-    sql += ` WHERE CHECK_NUMBER ILIKE ? OR CHECK_DESCRIPTION ILIKE ?`;
-    binds.push(`%${search}%`, `%${search}%`);
+    sql += ` WHERE CHECK_NUMBER ILIKE ?`;
+    binds.push(`%${search}%`);
   }
 
   sql += ` ORDER BY CHECK_NUMBER LIMIT 50`;

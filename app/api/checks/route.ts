@@ -11,7 +11,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       checks.map((c) => ({
         check_number: c.CHECK_NUMBER,
-        check_description: c.CHECK_DESCRIPTION,
+        owner_number: c.ENTITY_CODE,
+        owner_name: c.ENTITY_NAME,
       }))
     );
   } catch (error: any) {

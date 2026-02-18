@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type {
   VoidCheckSubmission,
-  OwnerOption,
   CheckOption,
   TabView,
   SubmissionFilters,
@@ -64,6 +63,7 @@ function SearchDropdown<T extends Record<string, string>>({
   placeholder,
   value,
   onChange,
+  onSelect,
   fetchUrl,
   mapResult,
   displayValue,
@@ -72,6 +72,7 @@ function SearchDropdown<T extends Record<string, string>>({
   placeholder: string;
   value: string;
   onChange: (value: string, display: string) => void;
+  onSelect?: (item: T) => void;
   fetchUrl: string;
   mapResult: (data: any) => T[];
   displayValue: string;
@@ -144,6 +145,7 @@ function SearchDropdown<T extends Record<string, string>>({
                   const desc = item[Object.keys(item)[1]];
                   setSearch(`${val} – ${desc}`);
                   onChange(val, `${val} – ${desc}`);
+                  onSelect?.(item);
                   setShow(false);
                 }}
               >
@@ -204,7 +206,6 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
   const [checkDisplay, setCheckDisplay] = useState('');
   const [checkAmount, setCheckAmount] = useState('');
   const [ownerNumber, setOwnerNumber] = useState('');
-  const [ownerDisplay, setOwnerDisplay] = useState('');
   const [checkDate, setCheckDate] = useState('');
   const [notes, setNotes] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -212,7 +213,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
   const [showSuccess, setShowSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const mapOwners = useCallback((data: any[]) => data, []);
+  const [ownerName, setOwnerName] = useState('');
   const mapChecks = useCallback((data: any[]) => data, []);
 
   const sanitizeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,7 +273,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
         setShowSuccess(false);
         setCheckNumber(''); setCheckDisplay('');
         setCheckAmount('');
-        setOwnerNumber(''); setOwnerDisplay('');
+        setOwnerNumber(''); setOwnerName('');
         setCheckDate(''); setNotes(''); setAttachments([]);
         onSuccess();
       }, 1800);
@@ -308,12 +309,16 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
                   setCheckNumber(val);
                   setCheckDisplay(display);
                 }}
+                onSelect={(item: any) => {
+                  setOwnerNumber(item.owner_number || '');
+                  setOwnerName(item.owner_name || '');
+                }}
                 fetchUrl="/api/checks"
                 mapResult={mapChecks}
                 renderOption={(item: any) => (
                   <>
                     <span className="search-option-number">{item.check_number}</span>
-                    <span className="search-option-name">{item.check_description}</span>
+                    <span className="search-option-name">{item.owner_number} – {item.owner_name}</span>
                   </>
                 )}
               />
@@ -337,27 +342,17 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
               />
             </div>
 
-            {/* Owner Number */}
+            {/* Owner Number (auto-filled from check) */}
             <div className="form-group">
               <label className="form-label">
                 Owner Number <span className="required">*</span>
               </label>
-              <SearchDropdown
-                placeholder="Search and select an owner..."
-                value={ownerNumber}
-                displayValue={ownerDisplay}
-                onChange={(val, display) => {
-                  setOwnerNumber(val);
-                  setOwnerDisplay(display);
-                }}
-                fetchUrl="/api/owners"
-                mapResult={mapOwners}
-                renderOption={(item: any) => (
-                  <>
-                    <span className="search-option-number">{item.owner_number}</span>
-                    <span className="search-option-name">{item.owner_name}</span>
-                  </>
-                )}
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Auto-filled when check is selected"
+                value={ownerNumber ? `${ownerNumber} – ${ownerName}` : ''}
+                readOnly
               />
             </div>
 

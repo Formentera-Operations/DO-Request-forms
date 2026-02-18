@@ -21,7 +21,7 @@ export async function querySnowflake<T = any>(
     const connection = snowflake.createConnection({
       account: process.env.SNOWFLAKE_ACCOUNT!,
       username: process.env.SNOWFLAKE_USERNAME!,
-      password: process.env.SNOWFLAKE_PASSWORD!,
+      privateKey: process.env.SNOWFLAKE_PRIVATE_KEY!, 
       database: process.env.SNOWFLAKE_DATABASE!,
       schema: process.env.SNOWFLAKE_SCHEMA!,
       warehouse: process.env.SNOWFLAKE_WAREHOUSE!,

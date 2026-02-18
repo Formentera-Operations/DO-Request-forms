@@ -5,3 +5,6 @@ node_modules/
 .env.production.local
 *.tsbuildinfo
 snowflake.log
+.mcp.json
+.vscode/
+nul

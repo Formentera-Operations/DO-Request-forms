@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching checks:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch checks' },
+      { error: 'Failed to fetch checks', message: error?.message || 'Unknown error' },
       { status: 500 }
     );
   }

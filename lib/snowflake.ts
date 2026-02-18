@@ -18,10 +18,14 @@ export async function querySnowflake<T = any>(
   binds: any[] = []
 ): Promise<T[]> {
   return new Promise((resolve, reject) => {
+    // Restore newlines in PEM key (Vercel env vars strip them)
+    const privateKey = (process.env.SNOWFLAKE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+
     const connection = snowflake.createConnection({
       account: process.env.SNOWFLAKE_ACCOUNT!,
       username: process.env.SNOWFLAKE_USERNAME!,
-      privateKey: process.env.SNOWFLAKE_PRIVATE_KEY!, 
+      authenticator: 'SNOWFLAKE_JWT',
+      privateKey,
       database: process.env.SNOWFLAKE_DATABASE!,
       schema: process.env.SNOWFLAKE_SCHEMA!,
       warehouse: process.env.SNOWFLAKE_WAREHOUSE!,

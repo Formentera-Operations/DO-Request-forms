@@ -478,6 +478,21 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
 /* ============================================================
    Submissions View — filters, bulk actions, detail/edit modal
    ============================================================ */
+const DEFAULT_COL_WIDTHS: Record<string, number> = {
+  checkbox: 40,
+  rowNum: 45,
+  check_number: 90,
+  check_amount: 110,
+  owner_number: 95,
+  check_date: 110,
+  notes: 200,
+  request_date: 115,
+  completion_status: 150,
+  sign_off_date: 115,
+  created_by: 200,
+  attachments: 100,
+};
+
 function SubmissionsView() {
   const [submissions, setSubmissions] = useState<VoidCheckSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -491,6 +506,38 @@ function SubmissionsView() {
   const [editData, setEditData] = useState<Partial<VoidCheckSubmission>>({});
   const [editAttachments, setEditAttachments] = useState<string[]>([]);
   const editFileRef = useRef<HTMLInputElement>(null);
+
+  // Column resize state
+  const [colWidths, setColWidths] = useState<Record<string, number>>({ ...DEFAULT_COL_WIDTHS });
+  const resizingCol = useRef<string | null>(null);
+  const resizeStartX = useRef(0);
+  const resizeStartW = useRef(0);
+
+  const onResizeStart = useCallback((col: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    resizingCol.current = col;
+    resizeStartX.current = e.clientX;
+    resizeStartW.current = colWidths[col] || 100;
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const diff = ev.clientX - resizeStartX.current;
+      const newWidth = Math.max(40, resizeStartW.current + diff);
+      setColWidths((prev) => ({ ...prev, [resizingCol.current!]: newWidth }));
+    };
+
+    const onMouseUp = () => {
+      resizingCol.current = null;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [colWidths]);
 
   const fetchSubmissions = useCallback(async () => {
     try {
@@ -820,10 +867,15 @@ function SubmissionsView() {
           </div>
         ) : (
           <div className="table-wrapper">
-            <table>
+            <table style={{ tableLayout: 'fixed', width: Object.values(colWidths).reduce((a, b) => a + b, 0) }}>
+              <colgroup>
+                {Object.keys(DEFAULT_COL_WIDTHS).map((col) => (
+                  <col key={col} style={{ width: colWidths[col] }} />
+                ))}
+              </colgroup>
               <thead>
                 <tr>
-                  <th>
+                  <th style={{ width: colWidths.checkbox }}>
                     <input
                       type="checkbox"
                       className="row-checkbox"
@@ -832,23 +884,33 @@ function SubmissionsView() {
                       onChange={toggleAll}
                     />
                   </th>
-                  <th>#</th>
-                  <th>Check #</th>
-                  <th>Check Amount</th>
-                  <th>Owner #</th>
-                  <th>Check Date</th>
-                  <th>Notes</th>
-                  <th>Request Date</th>
-                  <th>Completion Status</th>
-                  <th>Sign-Off Date</th>
-                  <th>Created By</th>
-                  <th>Attachments</th>
+                  {([
+                    ['rowNum', '#'],
+                    ['check_number', 'Check #'],
+                    ['check_amount', 'Check Amount'],
+                    ['owner_number', 'Owner #'],
+                    ['check_date', 'Check Date'],
+                    ['notes', 'Notes'],
+                    ['request_date', 'Request Date'],
+                    ['completion_status', 'Completion Status'],
+                    ['sign_off_date', 'Sign-Off Date'],
+                    ['created_by', 'Created By'],
+                    ['attachments', 'Attachments'],
+                  ] as const).map(([col, label]) => (
+                    <th key={col} style={{ width: colWidths[col], position: 'relative' }}>
+                      {label}
+                      <span
+                        className="col-resize-handle"
+                        onMouseDown={(e) => onResizeStart(col, e)}
+                      />
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((s, i) => {
                   const tn = s.notes
-                    ? s.notes.length > 25 ? s.notes.slice(0, 25) + '…' : s.notes
+                    ? s.notes.length > 40 ? s.notes.slice(0, 40) + '…' : s.notes
                     : '—';
                   const ac = s.attachments?.length || 0;
                   return (
@@ -861,27 +923,27 @@ function SubmissionsView() {
                           onChange={() => toggleRow(s.id!)}
                         />
                       </td>
-                      <td style={{ color: 'var(--text-muted)' }} onClick={() => openDetail(submissions.indexOf(s))}>{i + 1}</td>
-                      <td style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{s.check_number}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.check_amount)}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_number}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.check_date)}</td>
+                      <td className="cell-truncate" style={{ color: 'var(--text-muted)' }} onClick={() => openDetail(submissions.indexOf(s))}>{i + 1}</td>
+                      <td className="cell-truncate" style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{s.check_number}</td>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.check_amount)}</td>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_number}</td>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.check_date)}</td>
                       <td
+                        className="cell-truncate"
                         onClick={() => openDetail(submissions.indexOf(s))}
-                        style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}
                         title={s.notes || ''}
                       >
                         {tn}
                       </td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.request_date)}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.request_date)}</td>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>
                         <span className={`status ${statusClass(s.completion_status)}`}>
                           {s.completion_status}
                         </span>
                       </td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.sign_off_date)}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.created_by}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.sign_off_date)}</td>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>{s.created_by}</td>
+                      <td className="cell-truncate" onClick={() => openDetail(submissions.indexOf(s))}>
                         {ac > 0 ? `📎 ${ac}` : '—'}
                       </td>
                     </tr>

@@ -7,4 +7,5 @@ node_modules/
 snowflake.log
 .mcp.json
 .vscode/
+.claude/
 nul

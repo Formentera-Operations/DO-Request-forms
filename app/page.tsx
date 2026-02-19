@@ -430,8 +430,10 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
                 type="file"
                 multiple
                 onChange={(e) => {
-                  if (e.target.files)
-                    setAttachments((p) => [...p, ...Array.from(e.target.files!)]);
+                  const newFiles = e.target.files ? Array.from(e.target.files) : [];
+                  if (newFiles.length > 0) {
+                    setAttachments((p) => [...p, ...newFiles]);
+                  }
                   if (fileInputRef.current) fileInputRef.current.value = '';
                 }}
                 style={{ display: 'none' }}

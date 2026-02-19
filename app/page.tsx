@@ -252,6 +252,17 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
 
     setSubmitting(true);
     try {
+      // Upload attachments to Supabase Storage first
+      let uploadedPaths: string[] = [];
+      if (attachments.length > 0) {
+        const formData = new FormData();
+        attachments.forEach((f) => formData.append('files', f));
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) throw new Error('Failed to upload attachments');
+        const uploadData = await uploadRes.json();
+        uploadedPaths = uploadData.paths;
+      }
+
       const res = await fetch('/api/submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -263,6 +274,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
             ? `${checkDate.slice(6, 10)}-${checkDate.slice(0, 2)}-${checkDate.slice(3, 5)}`
             : checkDate,
           notes,
+          attachments: uploadedPaths,
           created_by: 'current.user@formenteraops.com', // TODO: replace with auth
         }),
       });
@@ -1096,20 +1108,33 @@ function SubmissionsView() {
                       <div className="detail-label">Attachments</div>
                       {detailSub.attachments?.length ? (
                         <div className="detail-attachments">
-                          {detailSub.attachments.map((a, i) => (
-                            <div
-                              key={i}
-                              className="detail-attach-item"
-                              onClick={() =>
-                                alert(
-                                  `In production this would download or open: ${a}\n\nFiles would be served from Supabase Storage.`
-                                )
-                              }
-                            >
-                              📎 {a}
-                              <span className="attach-dl">Open ↗</span>
-                            </div>
-                          ))}
+                          {detailSub.attachments.map((a, i) => {
+                            const fileName = a.split('/').pop() || a;
+                            // Strip leading timestamp prefix (e.g. "1234567890-") from display name
+                            const displayName = fileName.replace(/^\d+-/, '');
+                            return (
+                              <div
+                                key={i}
+                                className="detail-attach-item"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`/api/download?path=${encodeURIComponent(a)}`);
+                                    const data = await res.json();
+                                    if (data.url) {
+                                      window.open(data.url, '_blank');
+                                    } else {
+                                      alert('Failed to get download link.');
+                                    }
+                                  } catch {
+                                    alert('Failed to open file.');
+                                  }
+                                }}
+                              >
+                                📎 {displayName}
+                                <span className="attach-dl">Open ↗</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: 13 }}>

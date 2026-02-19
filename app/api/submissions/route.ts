@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       owner_number: body.owner_number,
       check_date: body.check_date,
       notes: body.notes || '',
+      attachments: body.attachments || [],
       request_date: new Date().toISOString(),
       completion_status: 'Pending',
       sign_off_date: null,

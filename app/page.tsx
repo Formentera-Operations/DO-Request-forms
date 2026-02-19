@@ -244,11 +244,13 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
       const res = await fetch('/api/submissions');
       const existing: VoidCheckSubmission[] = await res.json();
       const amt = parseFloat(checkAmount);
+      const chk = String(checkNumber).trim();
+      const own = String(ownerNumber).trim();
       const dupe = existing.find(
         (s) =>
-          s.check_number === checkNumber &&
-          s.owner_number === ownerNumber &&
-          Number(s.check_amount) === amt
+          String(s.check_number).trim() === chk &&
+          String(s.owner_number).trim() === own &&
+          Math.abs(Number(s.check_amount) - amt) < 0.01
       );
       if (dupe) {
         const msg = `A submission already exists with Owner # ${dupe.owner_number}, Check # ${dupe.check_number}, and Amount $${Number(dupe.check_amount).toFixed(2)}.\n\nWould you like to submit anyway?`;

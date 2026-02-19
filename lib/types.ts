@@ -16,6 +16,8 @@ export interface CheckOption {
   check_number: string;
   owner_number: string;
   owner_name: string;
+  check_amount: number;
+  check_date: string;
 }
 
 export type TabView = 'new-entry' | 'submissions';

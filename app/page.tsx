@@ -142,9 +142,8 @@ function SearchDropdown<T extends Record<string, string>>({
                 onClick={() => {
                   const key = Object.keys(item)[0];
                   const val = item[key];
-                  const desc = item[Object.keys(item)[1]];
-                  setSearch(`${val} – ${desc}`);
-                  onChange(val, `${val} – ${desc}`);
+                  setSearch(val);
+                  onChange(val, val);
                   onSelect?.(item);
                   setShow(false);
                 }}
@@ -260,7 +259,9 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
           check_number: checkNumber,
           check_amount: checkAmount,
           owner_number: ownerNumber,
-          check_date: checkDate,
+          check_date: checkDate.includes('-') && checkDate.length === 10
+            ? `${checkDate.slice(6, 10)}-${checkDate.slice(3, 5)}-${checkDate.slice(0, 2)}`
+            : checkDate,
           notes,
           created_by: 'current.user@formenteraops.com', // TODO: replace with auth
         }),
@@ -312,14 +313,23 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
                 onSelect={(item: any) => {
                   setOwnerNumber(item.owner_number || '');
                   setOwnerName(item.owner_name || '');
+                  const amt = item.check_amount != null ? Number(item.check_amount) : NaN;
+                  setCheckAmount(isNaN(amt) ? '' : amt.toFixed(2));
+                  const raw = item.check_date || '';
+                  if (raw) {
+                    const d = new Date(raw);
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const yyyy = d.getFullYear();
+                    setCheckDate(`${dd}-${mm}-${yyyy}`);
+                  } else {
+                    setCheckDate('');
+                  }
                 }}
                 fetchUrl="/api/checks"
                 mapResult={mapChecks}
                 renderOption={(item: any) => (
-                  <>
-                    <span className="search-option-number">{item.check_number}</span>
-                    <span className="search-option-name">{item.owner_number} – {item.owner_name}</span>
-                  </>
+                  <span className="search-option-number">{item.check_number}</span>
                 )}
               />
             </div>
@@ -362,8 +372,9 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
                 Check Date <span className="required">*</span>
               </label>
               <input
-                type="date"
+                type="text"
                 className="form-input"
+                placeholder="DD-MM-YYYY"
                 value={checkDate}
                 onChange={(e) => setCheckDate(e.target.value)}
                 required

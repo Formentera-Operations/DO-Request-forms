@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
         check_number: c.CHECK_NUMBER,
         owner_number: c.ENTITY_CODE,
         owner_name: c.ENTITY_NAME,
+        check_amount: c.CHECK_AMOUNT,
+        check_date: c.CHECK_DATE,
       }))
     );
   } catch (error: any) {

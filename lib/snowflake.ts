@@ -7,6 +7,8 @@ export interface SnowflakeCheck {
   CHECK_NUMBER: string;
   ENTITY_CODE: string;
   ENTITY_NAME: string;
+  CHECK_AMOUNT: number;
+  CHECK_DATE: string;
 }
 
 /**
@@ -63,7 +65,7 @@ export async function querySnowflake<T = any>(
  * Returns CHECK_NUMBER with associated ENTITY_CODE and ENTITY_NAME.
  */
 export async function getChecks(search?: string): Promise<SnowflakeCheck[]> {
-  let sql = `SELECT DISTINCT CHECK_NUMBER, ENTITY_CODE, ENTITY_NAME FROM FO_PRODUCTION_DB.MARTS.DIM_REVENUE_CHECK_REGISTER WHERE CHECK_TYPE = 'CHECK' AND COMPANY_CODE = '200' AND RECONCILED != 'YES'`;
+  let sql = `SELECT DISTINCT CHECK_NUMBER, ENTITY_CODE, ENTITY_NAME, CHECK_AMOUNT, CHECK_DATE FROM FO_PRODUCTION_DB.MARTS.DIM_REVENUE_CHECK_REGISTER WHERE CHECK_TYPE = 'CHECK' AND COMPANY_CODE = '200' AND RECONCILED != 'YES'`;
   const binds: any[] = [];
 
   if (search && search.trim()) {

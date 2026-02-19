@@ -34,7 +34,7 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
 
 /* Content */
 .content-area { max-width: 720px; margin: 32px auto; padding: 0 20px; }
-.content-area.wide { max-width: 1400px; }
+.content-area.wide { max-width: calc(100% - 48px); }
 
 /* Cards */
 .form-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }

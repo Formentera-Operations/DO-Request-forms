@@ -253,7 +253,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
           Math.abs(Number(s.check_amount) - amt) < 0.01
       );
       if (dupe) {
-        const msg = `A submission already exists with Owner # ${dupe.owner_number}, Check # ${dupe.check_number}, and Amount $${Number(dupe.check_amount).toFixed(2)}.\n\nWould you like to submit anyway?`;
+        const msg = `A submission already exists with Check # ${dupe.check_number}, Amount $${Number(dupe.check_amount).toFixed(2)}, and Owner # ${dupe.owner_number}.\n\nWould you like to submit anyway?`;
         if (!confirm(msg)) return;
       }
     } catch {}

@@ -150,7 +150,7 @@ tbody tr:hover { background: #e8f0fa; }
 .detail-label { font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); margin-bottom: 4px; }
 .detail-value { font-size: 14.5px; color: var(--text-primary); }
 .detail-field.full { grid-column: 1 / -1; }
-.detail-notes { background: #f7f8fa; border-radius: var(--radius); padding: 12px 14px; font-size: 14px; color: var(--text-primary); min-height: 40px; white-space: pre-wrap; }
+.detail-notes { background: #f7f8fa; border-radius: var(--radius); padding: 12px 14px; font-size: 14px; color: var(--text-primary); min-height: 40px; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word; }
 .detail-notes.empty { color: var(--text-muted); font-style: italic; }
 .detail-attachments { display: flex; flex-direction: column; gap: 6px; }
 .detail-attach-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f7f8fa; border-radius: var(--radius); font-size: 13px; color: var(--primary); cursor: pointer; transition: background .15s, box-shadow .15s; }

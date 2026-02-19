@@ -260,7 +260,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
           check_amount: checkAmount,
           owner_number: ownerNumber,
           check_date: checkDate.includes('-') && checkDate.length === 10
-            ? `${checkDate.slice(6, 10)}-${checkDate.slice(3, 5)}-${checkDate.slice(0, 2)}`
+            ? `${checkDate.slice(6, 10)}-${checkDate.slice(0, 2)}-${checkDate.slice(3, 5)}`
             : checkDate,
           notes,
           created_by: 'current.user@formenteraops.com', // TODO: replace with auth
@@ -321,7 +321,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
                     const dd = String(d.getDate()).padStart(2, '0');
                     const mm = String(d.getMonth() + 1).padStart(2, '0');
                     const yyyy = d.getFullYear();
-                    setCheckDate(`${dd}-${mm}-${yyyy}`);
+                    setCheckDate(`${mm}-${dd}-${yyyy}`);
                   } else {
                     setCheckDate('');
                   }
@@ -374,7 +374,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
               <input
                 type="text"
                 className="form-input"
-                placeholder="DD-MM-YYYY"
+                placeholder="MM-DD-YYYY"
                 value={checkDate}
                 onChange={(e) => setCheckDate(e.target.value)}
                 required

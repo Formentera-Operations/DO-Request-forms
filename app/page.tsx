@@ -239,13 +239,19 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
     if (!ownerNumber) { alert('Please select an Owner Number'); return; }
     if (!checkAmount || !checkDate) return;
 
-    // Duplicate check — warn if check number already exists
+    // Duplicate check — warn if owner, check number, and amount already exist
     try {
       const res = await fetch('/api/submissions');
       const existing: VoidCheckSubmission[] = await res.json();
-      const dupe = existing.find((s) => s.check_number === checkNumber);
+      const amt = parseFloat(checkAmount);
+      const dupe = existing.find(
+        (s) =>
+          s.check_number === checkNumber &&
+          s.owner_number === ownerNumber &&
+          Number(s.check_amount) === amt
+      );
       if (dupe) {
-        const msg = `Check # ${dupe.check_number} already exists in Submissions.\n\nWould you like to submit anyway?`;
+        const msg = `A submission already exists with Owner # ${dupe.owner_number}, Check # ${dupe.check_number}, and Amount $${Number(dupe.check_amount).toFixed(2)}.\n\nWould you like to submit anyway?`;
         if (!confirm(msg)) return;
       }
     } catch {}

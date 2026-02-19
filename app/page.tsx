@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 import type {
   VoidCheckSubmission,
   CheckOption,
@@ -164,7 +165,25 @@ function SearchDropdown<T extends Record<string, string>>({
    Main Page
    ============================================================ */
 export default function VoidChecksPage() {
+  const { data: session, status } = useSession();
   const [activeTab, setActiveTab] = useState<TabView>('new-entry');
+
+  // Show loading while checking auth
+  if (status === 'loading') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--text-muted)' }}>
+        Loading...
+      </div>
+    );
+  }
+
+  // Redirect to sign in if not authenticated
+  if (!session) {
+    signIn('azure-ad');
+    return null;
+  }
+
+  const userEmail = session.user?.email || 'Unknown User';
 
   return (
     <div>
@@ -186,7 +205,7 @@ export default function VoidChecksPage() {
 
       {activeTab === 'new-entry' ? (
         <div className="content-area">
-          <NewEntryForm onSuccess={() => setActiveTab('submissions')} />
+          <NewEntryForm onSuccess={() => setActiveTab('submissions')} userEmail={userEmail} />
         </div>
       ) : (
         <div className="content-area wide">
@@ -200,7 +219,7 @@ export default function VoidChecksPage() {
 /* ============================================================
    New Entry Form
    ============================================================ */
-function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
+function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEmail: string }) {
   const [checkNumber, setCheckNumber] = useState('');
   const [checkDisplay, setCheckDisplay] = useState('');
   const [checkAmount, setCheckAmount] = useState('');
@@ -283,7 +302,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
             : checkDate,
           notes,
           attachments: uploadedPaths,
-          created_by: 'current.user@formenteraops.com', // TODO: replace with auth
+          created_by: userEmail,
         }),
       });
 
@@ -313,7 +332,7 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
         <div className="form-card-body">
           <h1 className="form-card-title">New Void Check Entry</h1>
           <p className="form-card-subtitle">
-            Submitting as current.user@formenteraops.com
+            Submitting as {userEmail}
           </p>
 
           <form onSubmit={handleSubmit}>

@@ -421,7 +421,14 @@ function NewEntryForm({ onSuccess }: { onSuccess: () => void }) {
                 <div className="attach-list">
                   {attachments.map((file, i) => (
                     <div key={i} className="attach-item">
-                      <span>📎 {file.name}</span>
+                      <a
+                        href={URL.createObjectURL(file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--primary)', textDecoration: 'none' }}
+                      >
+                        📎 {file.name}
+                      </a>
                       <button
                         type="button"
                         className="attach-remove"

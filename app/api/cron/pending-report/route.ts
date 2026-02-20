@@ -100,6 +100,16 @@ export async function GET(request: NextRequest) {
       // Unlock Notes and Completion Status cells so they remain editable
       row.getCell('notes').protection = { locked: false };
       row.getCell('completion_status').protection = { locked: false };
+
+      // Add dropdown for Completion Status
+      row.getCell('completion_status').dataValidation = {
+        type: 'list',
+        allowBlank: false,
+        formulae: ['"Complete,Request Invalidated"'],
+        showErrorMessage: true,
+        errorTitle: 'Invalid Status',
+        error: 'Please select Complete or Request Invalidated.',
+      };
     });
 
     // Protect the sheet (all cells locked by default except unlocked ones above)

@@ -74,57 +74,51 @@ export async function POST(request: NextRequest) {
       const formatCurrency = (amount: number) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
-      const attachmentsList = submission.attachments.length > 0
-        ? submission.attachments.map((a: string) => {
-            const name = a.split('/').pop() || a;
-            return `<li>${name}</li>`;
-          }).join('')
-        : '<li style="color: #8c93a3;">None</li>';
+      // Download actual files from Supabase to attach to the email
+      const emailAttachments: { filename: string; content: Buffer }[] = [];
+      for (const path of submission.attachments) {
+        try {
+          const { data: fileData, error: dlError } = await supabase.storage
+            .from('attachments')
+            .download(path);
+          if (dlError || !fileData) continue;
+          const rawName = path.split('/').pop() || path;
+          const cleanName = rawName.replace(/^\d+-/, '');
+          emailAttachments.push({
+            filename: cleanName,
+            content: Buffer.from(await fileData.arrayBuffer()),
+          });
+        } catch {
+          // skip files that fail to download
+        }
+      }
+
+      const td = 'padding:6px 10px;border:1px solid #d4dae3;font-size:13px;';
+      const th = `${td}font-weight:600;background:#f7f8fa;white-space:nowrap;`;
 
       await transporter.sendMail({
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: submission.created_by,
         subject: `Voided Check #${submission.check_number}`,
         html: `
-          <div style="font-family: Segoe UI, Arial, sans-serif; max-width: 600px;">
-            <h2 style="color: #0078d4; margin-bottom: 4px;">Void Check Submitted</h2>
-            <p style="color: #5a6275; margin-top: 0;">Your void check request has been submitted successfully.</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa; width: 140px;">Check Number</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;">${submission.check_number}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa;">Check Amount</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;">${formatCurrency(submission.check_amount)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa;">Owner Number</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;">${submission.owner_number}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa;">Check Date</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;">${formatDate(submission.check_date)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa;">Request Date</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;">${formatDate(submission.request_date)}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa;">Notes</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;">${submission.notes || '—'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3; font-weight: 600; background: #f7f8fa; vertical-align: top;">Attachments</td>
-                <td style="padding: 10px 12px; border: 1px solid #d4dae3;"><ul style="margin: 0; padding-left: 18px;">${attachmentsList}</ul></td>
-              </tr>
+          <div style="font-family: Segoe UI, Arial, sans-serif; max-width: 480px;">
+            <h2 style="color: #0078d4; margin-bottom: 4px; font-size: 18px;">Void Check Submitted</h2>
+            <p style="color: #5a6275; margin-top: 0; font-size: 13px;">Your void check request has been submitted successfully.</p>
+            <table style="border-collapse: collapse; margin: 16px 0;">
+              <tr><td style="${th}">Check Number</td><td style="${td}">${submission.check_number}</td></tr>
+              <tr><td style="${th}">Check Amount</td><td style="${td}">${formatCurrency(submission.check_amount)}</td></tr>
+              <tr><td style="${th}">Owner Number</td><td style="${td}">${submission.owner_number}</td></tr>
+              <tr><td style="${th}">Check Date</td><td style="${td}">${formatDate(submission.check_date)}</td></tr>
+              <tr><td style="${th}">Request Date</td><td style="${td}">${formatDate(submission.request_date)}</td></tr>
+              <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '—'}</td></tr>
             </table>
-            <hr style="border: none; border-top: 1px solid #d4dae3; margin: 20px 0;" />
-            <p style="font-size: 12px; color: #8c93a3;">
+            <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
+            <p style="font-size: 11px; color: #8c93a3;">
               This is an automated confirmation from the Void Checks Management App.
             </p>
           </div>
         `,
+        attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
       });
     } catch (emailError: any) {
       console.error('Failed to send confirmation email:', emailError);

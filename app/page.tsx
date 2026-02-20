@@ -442,6 +442,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
                     <div key={i} className="attach-item">
                       <a
                         href={URL.createObjectURL(file)}
+                        download={file.name}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: 'var(--primary)', textDecoration: 'none' }}

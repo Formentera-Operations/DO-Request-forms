@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/pending-report",
-      "schedule": "0 9 18 * *"
+      "schedule": "0 14 18 * *"
     }
   ]
 }

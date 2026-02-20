@@ -96,6 +96,18 @@ export async function GET(request: NextRequest) {
       // Format amount as currency
       row.getCell('check_amount').numFmt = '$#,##0.00';
       row.getCell('row_number').alignment = { horizontal: 'center' };
+
+      // Unlock Notes and Completion Status cells so they remain editable
+      row.getCell('notes').protection = { locked: false };
+      row.getCell('completion_status').protection = { locked: false };
+    });
+
+    // Protect the sheet (all cells locked by default except unlocked ones above)
+    sheet.protect('', {
+      selectLockedCells: true,
+      selectUnlockedCells: true,
+      autoFilter: true,
+      sort: true,
     });
 
     // Add borders and alternating row colors

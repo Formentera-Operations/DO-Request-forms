@@ -41,3 +41,6 @@ CREATE POLICY "Allow update for all" ON void_checks
 -- Allow all authenticated users to delete
 CREATE POLICY "Allow delete for all" ON void_checks
   FOR DELETE USING (true);
+
+-- Add owner_name column (stores the entity name alongside owner_number)
+ALTER TABLE void_checks ADD COLUMN IF NOT EXISTS owner_name TEXT DEFAULT '';

@@ -297,6 +297,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
           check_number: checkNumber,
           check_amount: checkAmount,
           owner_number: ownerNumber,
+          owner_name: ownerName,
           check_date: checkDate.includes('-') && checkDate.length === 10
             ? `${checkDate.slice(6, 10)}-${checkDate.slice(0, 2)}-${checkDate.slice(3, 5)}`
             : checkDate,
@@ -620,7 +621,7 @@ function SubmissionsView() {
   const filtered = submissions.filter((s) => {
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      if (!s.owner_number.toLowerCase().includes(q) && !s.check_number.toLowerCase().includes(q))
+      if (!s.owner_number.toLowerCase().includes(q) && !s.check_number.toLowerCase().includes(q) && !(s.owner_name || '').toLowerCase().includes(q))
         return false;
     }
     if (filters.status && s.completion_status !== filters.status) return false;
@@ -755,6 +756,7 @@ function SubmissionsView() {
       check_number: sub.check_number,
       check_amount: sub.check_amount,
       owner_number: sub.owner_number,
+      owner_name: sub.owner_name,
       check_date: sub.check_date,
       notes: sub.notes,
       completion_status: sub.completion_status,
@@ -980,7 +982,7 @@ function SubmissionsView() {
                       <td style={{ color: 'var(--text-muted)' }} onClick={() => openDetail(submissions.indexOf(s))}>{i + 1}</td>
                       <td style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{s.check_number}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.check_amount)}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_number}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_name ? `${s.owner_number} \u2013 ${s.owner_name}` : s.owner_number}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.check_date)}</td>
                       <td
                         className="cell-truncate"
@@ -1071,12 +1073,13 @@ function SubmissionsView() {
                     />
                   </div>
                   <div className="detail-field">
-                    <div className="detail-label">Owner Number</div>
+                    <div className="detail-label">Owner</div>
                     <SearchDropdown
                       placeholder="Search owner..."
                       value={editData.owner_number || ''}
-                      displayValue={editData.owner_number || ''}
-                      onChange={(val) => setEditData((d) => ({ ...d, owner_number: val }))}
+                      displayValue={editData.owner_name ? `${editData.owner_number} \u2013 ${editData.owner_name}` : editData.owner_number || ''}
+                      onChange={(val) => setEditData((d) => ({ ...d, owner_number: val, owner_name: '' }))}
+                      onSelect={(item: any) => setEditData((d) => ({ ...d, owner_number: item.owner_number, owner_name: item.owner_name || '' }))}
                       fetchUrl="/api/owners"
                       mapResult={(d) => d}
                       renderOption={(item: any) => (
@@ -1198,8 +1201,8 @@ function SubmissionsView() {
                       <div className="detail-value">{formatCurrency(detailSub.check_amount)}</div>
                     </div>
                     <div className="detail-field">
-                      <div className="detail-label">Owner Number</div>
-                      <div className="detail-value">{detailSub.owner_number}</div>
+                      <div className="detail-label">Owner</div>
+                      <div className="detail-value">{detailSub.owner_name ? `${detailSub.owner_number} \u2013 ${detailSub.owner_name}` : detailSub.owner_number}</div>
                     </div>
                     <div className="detail-field">
                       <div className="detail-label">Check Date</div>

@@ -49,10 +49,10 @@ export async function GET(request: NextRequest) {
 
     // Define columns
     sheet.columns = [
-      { header: 'ID', key: 'id', width: 38 },
+      { header: '#', key: 'row_number', width: 8 },
       { header: 'Check #', key: 'check_number', width: 15 },
       { header: 'Check Amount', key: 'check_amount', width: 18 },
-      { header: 'Owner #', key: 'owner_number', width: 15 },
+      { header: 'Owner', key: 'owner_display', width: 35 },
       { header: 'Check Date', key: 'check_date', width: 15 },
       { header: 'Notes', key: 'notes', width: 35 },
       { header: 'Completion Status', key: 'completion_status', width: 20 },
@@ -72,12 +72,16 @@ export async function GET(request: NextRequest) {
     headerRow.height = 28;
 
     // Add data rows
-    pendingItems.forEach((item) => {
+    pendingItems.forEach((item, index) => {
+      const ownerDisplay = item.owner_name
+        ? `${item.owner_number} \u2013 ${item.owner_name}`
+        : item.owner_number;
+
       const row = sheet.addRow({
-        id: item.id,
+        row_number: index + 1,
         check_number: item.check_number,
         check_amount: item.check_amount,
-        owner_number: item.owner_number,
+        owner_display: ownerDisplay,
         check_date: item.check_date
           ? new Date(item.check_date).toLocaleDateString('en-US')
           : '',
@@ -91,8 +95,7 @@ export async function GET(request: NextRequest) {
 
       // Format amount as currency
       row.getCell('check_amount').numFmt = '$#,##0.00';
-      // Muted style for ID column
-      row.getCell('id').font = { size: 9, color: { argb: 'FF8C93A3' } };
+      row.getCell('row_number').alignment = { horizontal: 'center' };
     });
 
     // Add borders and alternating row colors

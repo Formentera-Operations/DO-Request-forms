@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       check_number: body.check_number,
       check_amount: parseFloat(body.check_amount),
       owner_number: body.owner_number,
+      owner_name: body.owner_name || '',
       check_date: body.check_date,
       notes: body.notes || '',
       attachments: body.attachments || [],
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
             <table style="border-collapse: collapse; margin: 16px 0;">
               <tr><td style="${th}">Check Number</td><td style="${td}">${submission.check_number}</td></tr>
               <tr><td style="${th}">Check Amount</td><td style="${td}">${formatCurrency(submission.check_amount)}</td></tr>
-              <tr><td style="${th}">Owner Number</td><td style="${td}">${submission.owner_number}</td></tr>
+              <tr><td style="${th}">Owner</td><td style="${td}">${submission.owner_name ? `${submission.owner_number} \u2013 ${submission.owner_name}` : submission.owner_number}</td></tr>
               <tr><td style="${th}">Check Date</td><td style="${td}">${formatDate(submission.check_date)}</td></tr>
               <tr><td style="${th}">Request Date</td><td style="${td}">${formatDate(submission.request_date)}</td></tr>
               <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '—'}</td></tr>
@@ -175,6 +176,7 @@ export async function PATCH(request: NextRequest) {
     if (body.check_number !== undefined) updatePayload.check_number = body.check_number;
     if (body.check_amount !== undefined) updatePayload.check_amount = parseFloat(body.check_amount);
     if (body.owner_number !== undefined) updatePayload.owner_number = body.owner_number;
+    if (body.owner_name !== undefined) updatePayload.owner_name = body.owner_name;
     if (body.check_date !== undefined) updatePayload.check_date = body.check_date;
     if (body.notes !== undefined) updatePayload.notes = body.notes;
     if (body.attachments !== undefined) updatePayload.attachments = body.attachments;

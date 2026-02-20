@@ -3,6 +3,7 @@ export interface VoidCheckSubmission {
   check_number: string;
   check_amount: number;
   owner_number: string;
+  owner_name: string;
   check_date: string;
   notes: string;
   request_date: string;

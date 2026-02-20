@@ -14,9 +14,13 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServerSupabaseClient();
 
+    // Strip timestamp prefix from filename for clean download name
+    const rawName = path.split('/').pop() || path;
+    const cleanName = rawName.replace(/^\d+-/, '');
+
     const { data, error } = await supabase.storage
       .from(BUCKET)
-      .createSignedUrl(path, 60 * 5); // 5-minute signed URL
+      .createSignedUrl(path, 60 * 5, { download: cleanName }); // 5-minute signed URL
 
     if (error) throw error;
 

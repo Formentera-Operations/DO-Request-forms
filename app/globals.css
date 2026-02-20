@@ -79,9 +79,23 @@ html, body { height: 100%; font-family: var(--font); background: var(--bg); colo
 
 /* Submissions */
 .submissions-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }
-.submissions-header { padding: 24px 36px 16px; display: flex; align-items: center; justify-content: space-between; }
+.submissions-header { padding: 24px 36px 16px; display: flex; align-items: center; gap: 10px; }
 .submissions-header h2 { font-size: 18px; font-weight: 700; }
 .submissions-count { font-size: 12px; color: var(--text-muted); background: #f0f2f5; padding: 4px 10px; border-radius: 12px; }
+.upload-spreadsheet-btn {
+  margin-left: auto;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--primary);
+  background: #fff;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.upload-spreadsheet-btn:hover { background: #f0f7ff; }
 .empty-state { padding: 48px; text-align: center; color: var(--text-muted); }
 
 /* Table */
@@ -180,6 +194,15 @@ tbody tr:hover { background: #e8f0fa; }
 .edit-input:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0,120,212,.12); }
 .edit-textarea { width: 100%; padding: 8px 12px; font-size: 14px; font-family: var(--font); color: var(--text-primary); background: #fff; border: 1px solid var(--border); border-radius: var(--radius); outline: none; resize: vertical; min-height: 70px; transition: border-color .2s, box-shadow .2s; }
 .edit-textarea:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(0,120,212,.12); }
+
+/* Upload preview */
+.upload-preview-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0; }
+.upload-preview-table th { background: #f7f8fa; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+.upload-preview-table td { padding: 8px 12px; border-bottom: 1px solid #f0f2f5; }
+.upload-change-from { text-decoration: line-through; color: var(--text-muted); }
+.upload-change-to { color: var(--primary); font-weight: 600; }
+.upload-warnings { margin: 12px 0; padding: 12px 14px; background: var(--pending-bg); border-radius: var(--radius); font-size: 13px; }
+.upload-warning-item { padding: 4px 0; color: var(--pending-text); }
 
 /* Animations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

@@ -519,6 +519,61 @@ function SubmissionsView() {
   const [editAttachments, setEditAttachments] = useState<string[]>([]);
   const editFileRef = useRef<HTMLInputElement>(null);
 
+  // Spreadsheet upload
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadPreview, setUploadPreview] = useState<any>(null);
+  const [uploadResult, setUploadResult] = useState<any>(null);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const uploadFileRef = useRef<HTMLInputElement>(null);
+
+  const closeUploadModal = useCallback(() => {
+    setShowUploadModal(false);
+    setUploadFile(null);
+    setUploadPreview(null);
+    setUploadResult(null);
+    setUploadError(null);
+    setUploadLoading(false);
+    if (uploadFileRef.current) uploadFileRef.current.value = '';
+  }, []);
+
+  const handleUploadPreview = useCallback(async () => {
+    if (!uploadFile) return;
+    setUploadLoading(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', uploadFile);
+      fd.append('action', 'preview');
+      const res = await fetch('/api/upload-spreadsheet', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) { setUploadError(data.error || 'Failed to parse spreadsheet'); return; }
+      setUploadPreview(data);
+    } catch {
+      setUploadError('Failed to upload. Please try again.');
+    } finally {
+      setUploadLoading(false);
+    }
+  }, [uploadFile]);
+
+  const handleUploadApply = useCallback(async () => {
+    if (!uploadFile) return;
+    setUploadLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', uploadFile);
+      fd.append('action', 'apply');
+      const res = await fetch('/api/upload-spreadsheet', { method: 'POST', body: fd });
+      const data = await res.json();
+      setUploadResult(data);
+    } catch {
+      setUploadError('Failed to apply changes.');
+    } finally {
+      setUploadLoading(false);
+    }
+  }, [uploadFile]);
+
   // Notes column resize
   const [notesWidth, setNotesWidth] = useState(200);
   const resizeStartX = useRef(0);
@@ -757,6 +812,9 @@ function SubmissionsView() {
           <span className="submissions-count">
             {filtered.length} of {submissions.length}
           </span>
+          <button className="upload-spreadsheet-btn" onClick={() => setShowUploadModal(true)}>
+            Upload Spreadsheet
+          </button>
         </div>
 
         {/* Bulk bar */}
@@ -1227,6 +1285,133 @@ function SubmissionsView() {
                     </select>
                   </div>
                 </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Spreadsheet Modal */}
+      {showUploadModal && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeUploadModal(); }}>
+          <div className="modal" style={{ maxWidth: 680 }}>
+            <div className="modal-header">
+              <h2>Upload Spreadsheet</h2>
+              <div className="modal-actions">
+                <button className="modal-close" onClick={closeUploadModal}>×</button>
+              </div>
+            </div>
+            <div className="modal-body">
+
+              {/* Phase 1: File Selection */}
+              {!uploadPreview && !uploadResult && (
+                <div>
+                  <p style={{ marginBottom: 16, color: 'var(--text-secondary)', fontSize: 13 }}>
+                    Upload the Excel report to update <strong>Notes</strong> and <strong>Completion Status</strong> for matching records.
+                  </p>
+                  <input
+                    ref={uploadFileRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={(e) => { setUploadFile(e.target.files?.[0] || null); setUploadError(null); }}
+                  />
+                  {uploadError && <p style={{ color: 'var(--danger, #e74c3c)', marginTop: 8, fontSize: 13 }}>{uploadError}</p>}
+                  <div style={{ marginTop: 16 }}>
+                    <button className="submit-btn" disabled={!uploadFile || uploadLoading} onClick={handleUploadPreview}>
+                      {uploadLoading ? 'Parsing...' : 'Upload & Preview'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Phase 2: Preview */}
+              {uploadPreview && !uploadResult && (
+                <div>
+                  {uploadPreview.updates.length > 0 ? (
+                    <>
+                      <p style={{ marginBottom: 12, fontSize: 13 }}>
+                        <strong>{uploadPreview.updates.length}</strong> record(s) will be updated:
+                      </p>
+                      <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+                        <table className="upload-preview-table">
+                          <thead>
+                            <tr>
+                              <th>Check #</th>
+                              <th>Field</th>
+                              <th>Current</th>
+                              <th>New</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {uploadPreview.updates.flatMap((u: any) =>
+                              Object.entries(u.changes).map(([field, change]: [string, any]) => (
+                                <tr key={`${u.id}-${field}`}>
+                                  <td>{u.checkNumber}</td>
+                                  <td>{field === 'completion_status' ? 'Status' : 'Notes'}</td>
+                                  <td><span className="upload-change-from">{change.from || '(empty)'}</span></td>
+                                  <td><span className="upload-change-to">{change.to || '(empty)'}</span></td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  ) : (
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>No changes detected in the spreadsheet.</p>
+                  )}
+
+                  {uploadPreview.warnings.length > 0 && (
+                    <div className="upload-warnings">
+                      <strong>Warnings ({uploadPreview.warnings.length})</strong>
+                      {uploadPreview.warnings.map((w: any, i: number) => (
+                        <div key={i} className="upload-warning-item">Row {w.row}: {w.message}</div>
+                      ))}
+                    </div>
+                  )}
+
+                  {uploadPreview.skipped.length > 0 && (
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8 }}>
+                      {uploadPreview.skipped.length} row(s) skipped (no changes).
+                    </p>
+                  )}
+
+                  {uploadError && <p style={{ color: 'var(--danger, #e74c3c)', marginTop: 8, fontSize: 13 }}>{uploadError}</p>}
+
+                  <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+                    {uploadPreview.updates.length > 0 && (
+                      <button className="submit-btn" disabled={uploadLoading} onClick={handleUploadApply}>
+                        {uploadLoading ? 'Applying...' : `Apply ${uploadPreview.updates.length} Change${uploadPreview.updates.length > 1 ? 's' : ''}`}
+                      </button>
+                    )}
+                    <button className="cancel-edit-btn" onClick={closeUploadModal}>Cancel</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Phase 3: Result */}
+              {uploadResult && (
+                <div>
+                  <p style={{ fontSize: 14, marginBottom: 8 }}>
+                    <strong>{uploadResult.applied.length}</strong> record(s) updated successfully.
+                  </p>
+                  {uploadResult.errors.length > 0 && (
+                    <p style={{ color: 'var(--danger, #e74c3c)', fontSize: 13 }}>
+                      {uploadResult.errors.length} error(s) occurred.
+                    </p>
+                  )}
+                  {uploadResult.warnings.length > 0 && (
+                    <p style={{ color: '#e67e22', fontSize: 13 }}>
+                      {uploadResult.warnings.length} warning(s).
+                    </p>
+                  )}
+                  <button className="submit-btn" style={{ marginTop: 16 }} onClick={() => {
+                    closeUploadModal();
+                    fetchSubmissions();
+                  }}>
+                    Done
+                  </button>
+                </div>
               )}
             </div>
           </div>

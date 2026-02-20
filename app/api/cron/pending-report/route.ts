@@ -49,11 +49,13 @@ export async function GET(request: NextRequest) {
 
     // Define columns
     sheet.columns = [
+      { header: 'ID', key: 'id', width: 38 },
       { header: 'Check #', key: 'check_number', width: 15 },
       { header: 'Check Amount', key: 'check_amount', width: 18 },
       { header: 'Owner #', key: 'owner_number', width: 15 },
       { header: 'Check Date', key: 'check_date', width: 15 },
       { header: 'Notes', key: 'notes', width: 35 },
+      { header: 'Completion Status', key: 'completion_status', width: 20 },
       { header: 'Request Date', key: 'request_date', width: 20 },
       { header: 'Created By', key: 'created_by', width: 30 },
     ];
@@ -72,6 +74,7 @@ export async function GET(request: NextRequest) {
     // Add data rows
     pendingItems.forEach((item) => {
       const row = sheet.addRow({
+        id: item.id,
         check_number: item.check_number,
         check_amount: item.check_amount,
         owner_number: item.owner_number,
@@ -79,6 +82,7 @@ export async function GET(request: NextRequest) {
           ? new Date(item.check_date).toLocaleDateString('en-US')
           : '',
         notes: item.notes || '',
+        completion_status: item.completion_status,
         request_date: item.request_date
           ? new Date(item.request_date).toLocaleDateString('en-US')
           : '',
@@ -87,6 +91,8 @@ export async function GET(request: NextRequest) {
 
       // Format amount as currency
       row.getCell('check_amount').numFmt = '$#,##0.00';
+      // Muted style for ID column
+      row.getCell('id').font = { size: 9, color: { argb: 'FF8C93A3' } };
     });
 
     // Add borders and alternating row colors
@@ -108,10 +114,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Auto-filter
+    // Auto-filter (A through I = 9 columns)
     sheet.autoFilter = {
       from: 'A1',
-      to: `G${pendingItems.length + 1}`,
+      to: `I${pendingItems.length + 1}`,
     };
 
     // 3. Generate buffer

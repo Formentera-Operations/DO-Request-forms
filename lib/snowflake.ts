@@ -66,11 +66,10 @@ export async function querySnowflake<T = any>(
 }
 
 /**
- * Fetch distinct owners from DIM_REVENUE_CHECK_REGISTER.
- * TODO: Replace with dedicated owner/entity table once provided.
+ * Fetch active owners from DIM_ENTITIES.
  */
 export async function getOwners(search?: string): Promise<SnowflakeOwner[]> {
-  let sql = `SELECT DISTINCT ENTITY_CODE, ENTITY_NAME FROM FO_PRODUCTION_DB.MARTS.DIM_REVENUE_CHECK_REGISTER WHERE CHECK_TYPE = 'CHECK' AND COMPANY_CODE = '200'`;
+  let sql = `SELECT ENTITY_CODE, ENTITY_NAME FROM FO_PRODUCTION_DB.MARTS.DIM_ENTITIES WHERE ENTITY_TYPE != 'Vendor' AND IS_ACTIVE_OWNER = 'TRUE'`;
   const binds: any[] = [];
 
   if (search && search.trim()) {

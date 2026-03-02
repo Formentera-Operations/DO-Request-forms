@@ -5,6 +5,7 @@ export interface VoidCheckSubmission {
   owner_number: string;
   owner_name: string;
   check_date: string;
+  request_source: string;
   notes: string;
   request_date: string;
   completion_status: 'Pending' | 'Complete' | 'Request Invalidated';

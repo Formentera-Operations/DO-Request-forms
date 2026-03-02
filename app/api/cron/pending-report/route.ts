@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       { header: 'Check Amount', key: 'check_amount', width: 18 },
       { header: 'Owner', key: 'owner_display', width: 35 },
       { header: 'Check Date', key: 'check_date', width: 15 },
+      { header: 'Request Source', key: 'request_source', width: 18 },
       { header: 'Notes', key: 'notes', width: 35 },
       { header: 'Completion Status', key: 'completion_status', width: 20 },
       { header: 'Request Date', key: 'request_date', width: 20 },
@@ -85,6 +86,7 @@ export async function GET(request: NextRequest) {
         check_date: item.check_date
           ? new Date(item.check_date).toLocaleDateString('en-US')
           : '',
+        request_source: item.request_source || '',
         notes: item.notes || '',
         completion_status: item.completion_status,
         request_date: item.request_date
@@ -139,10 +141,10 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Auto-filter (A through I = 9 columns)
+    // Auto-filter (A through J = 10 columns)
     sheet.autoFilter = {
       from: 'A1',
-      to: `I${pendingItems.length + 1}`,
+      to: `J${pendingItems.length + 1}`,
     };
 
     // 3. Generate buffer

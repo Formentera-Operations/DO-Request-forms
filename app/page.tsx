@@ -273,6 +273,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
   const [checkAmount, setCheckAmount] = useState('');
   const [ownerNumber, setOwnerNumber] = useState('');
   const [checkDate, setCheckDate] = useState('');
+  const [requestSource, setRequestSource] = useState('');
   const [notes, setNotes] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -349,6 +350,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
           check_date: checkDate.includes('-') && checkDate.length === 10
             ? `${checkDate.slice(6, 10)}-${checkDate.slice(0, 2)}-${checkDate.slice(3, 5)}`
             : checkDate,
+          request_source: requestSource,
           notes,
           attachments: uploadedPaths,
           created_by: userEmail,
@@ -363,7 +365,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
         setCheckNumber(''); setCheckDisplay('');
         setCheckAmount('');
         setOwnerNumber(''); setOwnerName('');
-        setCheckDate(''); setNotes(''); setAttachments([]);
+        setCheckDate(''); setRequestSource(''); setNotes(''); setAttachments([]);
         onSuccess();
       }, 1800);
     } catch (err) {
@@ -467,6 +469,23 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
                 onChange={(e) => setCheckDate(e.target.value)}
                 required
               />
+            </div>
+
+            {/* Request Source */}
+            <div className="form-group">
+              <label className="form-label">
+                Request Source <span className="required">*</span>
+              </label>
+              <select
+                className="form-input"
+                value={requestSource}
+                onChange={(e) => setRequestSource(e.target.value)}
+                required
+              >
+                <option value="" disabled>Select a source...</option>
+                <option value="Returned Check">Returned Check</option>
+                <option value="Void Request">Void Request</option>
+              </select>
             </div>
 
             {/* Notes */}
@@ -806,6 +825,7 @@ function SubmissionsView() {
       owner_number: sub.owner_number,
       owner_name: sub.owner_name,
       check_date: sub.check_date,
+      request_source: sub.request_source,
       notes: sub.notes,
       completion_status: sub.completion_status,
     });
@@ -1000,6 +1020,7 @@ function SubmissionsView() {
                   <th>Check Amount</th>
                   <th>Owner #</th>
                   <th>Check Date</th>
+                  <th>Request Source</th>
                   <th style={{ width: notesWidth, minWidth: 80, position: 'relative' }}>
                     Notes
                     <span
@@ -1032,6 +1053,7 @@ function SubmissionsView() {
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.check_amount)}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_name ? `${s.owner_number} \u2013 ${s.owner_name}` : s.owner_number}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.check_date)}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.request_source || '—'}</td>
                       <td
                         className="cell-truncate"
                         style={{ maxWidth: notesWidth }}
@@ -1148,6 +1170,18 @@ function SubmissionsView() {
                     />
                   </div>
                   <div className="detail-field">
+                    <div className="detail-label">Request Source</div>
+                    <select
+                      className="edit-input"
+                      value={editData.request_source || ''}
+                      onChange={(e) => setEditData((d) => ({ ...d, request_source: e.target.value }))}
+                    >
+                      <option value="" disabled>Select a source...</option>
+                      <option value="Returned Check">Returned Check</option>
+                      <option value="Void Request">Void Request</option>
+                    </select>
+                  </div>
+                  <div className="detail-field">
                     <div className="detail-label">Request Date</div>
                     <div className="detail-value" style={{ paddingTop: 8 }}>
                       {formatDate(detailSub.request_date)}
@@ -1255,6 +1289,10 @@ function SubmissionsView() {
                     <div className="detail-field">
                       <div className="detail-label">Check Date</div>
                       <div className="detail-value">{formatDate(detailSub.check_date)}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Request Source</div>
+                      <div className="detail-value">{detailSub.request_source || '—'}</div>
                     </div>
                     <div className="detail-field">
                       <div className="detail-label">Request Date</div>

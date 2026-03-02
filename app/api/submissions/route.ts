@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import nodemailer from 'nodemailer';
+import { sendMail } from '@/lib/email';
 
 const TABLE_NAME = 'void_checks';
 
@@ -56,18 +56,8 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to submitter
     try {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
-        },
-      });
-
       const formatDate = (d: string) => {
-        if (!d) return '—';
+        if (!d) return '\u2014';
         const date = new Date(d);
         return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
       };
@@ -97,8 +87,7 @@ export async function POST(request: NextRequest) {
       const td = 'padding:6px 10px;border:1px solid #d4dae3;font-size:13px;';
       const th = `${td}font-weight:600;background:#f7f8fa;white-space:nowrap;`;
 
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      await sendMail({
         to: submission.created_by,
         subject: `Voided Check #${submission.check_number}`,
         html: `
@@ -111,7 +100,7 @@ export async function POST(request: NextRequest) {
               <tr><td style="${th}">Owner</td><td style="${td}">${submission.owner_name ? `${submission.owner_number} \u2013 ${submission.owner_name}` : submission.owner_number}</td></tr>
               <tr><td style="${th}">Check Date</td><td style="${td}">${formatDate(submission.check_date)}</td></tr>
               <tr><td style="${th}">Request Date</td><td style="${td}">${formatDate(submission.request_date)}</td></tr>
-              <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '—'}</td></tr>
+              <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '\u2014'}</td></tr>
             </table>
             <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
             <p style="font-size: 11px; color: #8c93a3;">

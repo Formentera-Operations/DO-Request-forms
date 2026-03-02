@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
-import nodemailer from 'nodemailer';
+import { sendMail } from '@/lib/email';
 
 const TABLE_NAME = 'interest_tracker';
 
@@ -57,16 +57,6 @@ export async function POST(request: NextRequest) {
 
     // Send confirmation email to submitter
     try {
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_SECURE === 'true',
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD,
-        },
-      });
-
       const formatCurrency = (amount: number) =>
         new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
@@ -96,10 +86,9 @@ export async function POST(request: NextRequest) {
         ? `${submission.owner_number} \u2013 ${submission.owner_name}`
         : submission.owner_number;
 
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      await sendMail({
         to: submission.created_by,
-        subject: `Interest Tracker — ${ownerDisplay}`,
+        subject: `Interest Tracker \u2014 ${ownerDisplay}`,
         html: `
           <div style="font-family: Segoe UI, Arial, sans-serif; max-width: 480px;">
             <h2 style="color: #0078d4; margin-bottom: 4px; font-size: 18px;">Interest Tracker Submitted</h2>

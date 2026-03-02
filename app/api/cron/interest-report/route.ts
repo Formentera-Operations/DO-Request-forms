@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase';
 import ExcelJS from 'exceljs';
-import nodemailer from 'nodemailer';
+import { sendMail } from '@/lib/email';
 
 const TABLE_NAME = 'interest_tracker';
 
@@ -139,16 +139,6 @@ export async function GET(request: NextRequest) {
     const buffer = await workbook.xlsx.writeBuffer();
 
     // Send email
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
-
     const now = new Date();
     const monthYear = now.toLocaleDateString('en-US', {
       month: 'long',
@@ -166,8 +156,7 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    await sendMail({
       to: recipients,
       subject: `Pending Interest Tracker Report \u2014 ${monthYear}`,
       html: `

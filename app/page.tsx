@@ -2111,6 +2111,7 @@ function InterestTrackerSubmissionsView() {
                     Notes
                     <span className="col-resize-handle" onMouseDown={onNotesResizeStart} />
                   </th>
+                  <th>Request Date</th>
                   <th>Completion Status</th>
                   <th>Sign-Off Date</th>
                   <th>Created By</th>
@@ -2132,6 +2133,7 @@ function InterestTrackerSubmissionsView() {
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_end_date || '\u2014'}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.amount_due)}</td>
                       <td className="cell-truncate" style={{ maxWidth: notesWidth }} onClick={() => openDetail(submissions.indexOf(s))} title={s.notes || ''}>{s.notes || '\u2014'}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.request_date)}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>
                         <span className={`status ${statusClass(s.completion_status)}`}>{s.completion_status}</span>
                       </td>

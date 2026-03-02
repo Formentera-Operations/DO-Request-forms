@@ -430,15 +430,11 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
                 Check Amount <span className="required">*</span>
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
+                type="text"
                 className="form-input"
-                placeholder="0.00"
-                value={checkAmount}
-                onChange={sanitizeAmount}
-                onBlur={formatAmount}
-                required
+                placeholder="Auto-filled when check is selected"
+                value={checkAmount ? `$${checkAmount}` : ''}
+                readOnly
               />
             </div>
 
@@ -464,10 +460,9 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
               <input
                 type="text"
                 className="form-input"
-                placeholder="MM-DD-YYYY"
+                placeholder="Auto-filled when check is selected"
                 value={checkDate}
-                onChange={(e) => setCheckDate(e.target.value)}
-                required
+                readOnly
               />
             </div>
 

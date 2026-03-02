@@ -1013,7 +1013,7 @@ function SubmissionsView() {
                   <th>#</th>
                   <th>Check #</th>
                   <th>Check Amount</th>
-                  <th>Owner #</th>
+                  <th>Owner # - Name</th>
                   <th>Check Date</th>
                   <th>Request Source</th>
                   <th style={{ width: notesWidth, minWidth: 80, position: 'relative' }}>
@@ -2102,7 +2102,7 @@ function InterestTrackerSubmissionsView() {
                       onChange={toggleAll} />
                   </th>
                   <th>#</th>
-                  <th>Owner #</th>
+                  <th>Owner # - Name</th>
                   <th>% Interest Charged</th>
                   <th>Interest Start Date (Prod)</th>
                   <th>Interest End Date (Prod)</th>

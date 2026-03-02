@@ -12,8 +12,8 @@ export interface SnowflakeCheck {
 }
 
 export interface SnowflakeOwner {
-  ENTITY_CODE: string;
-  ENTITY_NAME: string;
+  OWNER_CODE: string;
+  OWNER_NAME: string;
 }
 
 /**
@@ -66,27 +66,27 @@ export async function querySnowflake<T = any>(
 }
 
 /**
- * Fetch active owners from DIM_ENTITIES.
+ * Fetch owners from GOLD_DIM_OWNER.
  */
 export async function getOwners(search?: string): Promise<SnowflakeOwner[]> {
-  let sql = `SELECT ENTITY_CODE, ENTITY_NAME FROM FO_PRODUCTION_DB.MARTS.DIM_ENTITIES WHERE ENTITY_TYPE != 'Vendor' AND IS_ACTIVE_OWNER = 'TRUE'`;
+  let sql = `SELECT OWNER_CODE, OWNER_NAME FROM FO_PRODUCTION_DB.GOLD_LAND.GOLD_DIM_OWNER`;
   const binds: any[] = [];
 
   if (search && search.trim()) {
-    sql += ` AND (ENTITY_CODE ILIKE ? OR ENTITY_NAME ILIKE ?)`;
+    sql += ` WHERE (OWNER_CODE ILIKE ? OR OWNER_NAME ILIKE ?)`;
     binds.push(`%${search}%`, `%${search}%`);
   }
 
-  sql += ` ORDER BY ENTITY_CODE LIMIT 50`;
+  sql += ` ORDER BY OWNER_CODE LIMIT 50`;
   return querySnowflake<SnowflakeOwner>(sql, binds);
 }
 
 /**
- * Fetch checks from DIM_REVENUE_CHECK_REGISTER.
+ * Fetch checks from GOLD_DIM_REVENUE_CHECK_REGISTER.
  * Returns CHECK_NUMBER with associated ENTITY_CODE and ENTITY_NAME.
  */
 export async function getChecks(search?: string): Promise<SnowflakeCheck[]> {
-  let sql = `SELECT DISTINCT CHECK_NUMBER, ENTITY_CODE, ENTITY_NAME, CHECK_AMOUNT, CHECK_DATE FROM FO_PRODUCTION_DB.MARTS.DIM_REVENUE_CHECK_REGISTER WHERE CHECK_TYPE = 'CHECK' AND COMPANY_CODE = '200' AND RECONCILED != 'YES'`;
+  let sql = `SELECT DISTINCT CHECK_NUMBER, ENTITY_CODE, ENTITY_NAME, CHECK_AMOUNT, CHECK_DATE FROM FO_PRODUCTION_DB.GOLD_FINANCIAL.GOLD_DIM_REVENUE_CHECK_REGISTER WHERE CHECK_TYPE = 'CHECK' AND COMPANY_CODE = '200' AND RECONCILED != 'YES'`;
   const binds: any[] = [];
 
   if (search && search.trim()) {

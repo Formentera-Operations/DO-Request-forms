@@ -9,8 +9,8 @@ export async function GET(req: NextRequest) {
     const results = await getOwners(search);
 
     const mapped = results.map((r) => ({
-      owner_number: r.ENTITY_CODE,
-      owner_name: r.ENTITY_NAME,
+      owner_number: r.OWNER_CODE,
+      owner_name: r.OWNER_NAME,
     }));
 
     return NextResponse.json(mapped);

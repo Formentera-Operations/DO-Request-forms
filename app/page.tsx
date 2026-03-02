@@ -4,7 +4,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import type {
   VoidCheckSubmission,
+  InterestTrackerSubmission,
   CheckOption,
+  OwnerOption,
+  AppView,
   TabView,
   SubmissionFilters,
 } from '@/lib/types';
@@ -166,7 +169,13 @@ function SearchDropdown<T extends Record<string, string>>({
    ============================================================ */
 export default function VoidChecksPage() {
   const { data: session, status } = useSession();
-  const [activeTab, setActiveTab] = useState<TabView>('new-entry');
+  const [activeApp, setActiveApp] = useState<AppView>('void-checks');
+  const [vcTab, setVcTab] = useState<TabView>('new-entry');
+  const [itTab, setItTab] = useState<TabView>('new-entry');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(menuRef, () => setMenuOpen(false));
 
   // Show loading while checking auth
   if (status === 'loading') {
@@ -184,11 +193,38 @@ export default function VoidChecksPage() {
   }
 
   const userEmail = session.user?.email || 'Unknown User';
+  const activeTab = activeApp === 'void-checks' ? vcTab : itTab;
+  const setActiveTab = activeApp === 'void-checks' ? setVcTab : setItTab;
+  const appLabel = activeApp === 'void-checks' ? 'Void Checks' : 'Interest Tracker';
 
   return (
     <div>
       <div className="tab-bar">
-        <div className="tab-bar-title">Void Checks</div>
+        <div className="hamburger-wrapper" ref={menuRef}>
+          <button className="hamburger-btn" onClick={() => setMenuOpen((o) => !o)}>
+            <span className="hamburger-icon">☰</span>
+            {appLabel}
+            <span className={`hamburger-chevron ${menuOpen ? 'open' : ''}`}>▾</span>
+          </button>
+          {menuOpen && (
+            <div className="hamburger-dropdown">
+              <button
+                className={`hamburger-item ${activeApp === 'void-checks' ? 'active' : ''}`}
+                onClick={() => { setActiveApp('void-checks'); setMenuOpen(false); }}
+              >
+                <span className="hamburger-item-icon">✓</span>
+                Void Checks
+              </button>
+              <button
+                className={`hamburger-item ${activeApp === 'interest-tracker' ? 'active' : ''}`}
+                onClick={() => { setActiveApp('interest-tracker'); setMenuOpen(false); }}
+              >
+                <span className="hamburger-item-icon">%</span>
+                Interest Tracker
+              </button>
+            </div>
+          )}
+        </div>
         <button
           className={`tab-btn ${activeTab === 'new-entry' ? 'active' : ''}`}
           onClick={() => setActiveTab('new-entry')}
@@ -203,14 +239,26 @@ export default function VoidChecksPage() {
         </button>
       </div>
 
-      {activeTab === 'new-entry' ? (
-        <div className="content-area">
-          <NewEntryForm onSuccess={() => setActiveTab('submissions')} userEmail={userEmail} />
-        </div>
+      {activeApp === 'void-checks' ? (
+        vcTab === 'new-entry' ? (
+          <div className="content-area">
+            <NewEntryForm onSuccess={() => setVcTab('submissions')} userEmail={userEmail} />
+          </div>
+        ) : (
+          <div className="content-area wide">
+            <SubmissionsView />
+          </div>
+        )
       ) : (
-        <div className="content-area wide">
-          <SubmissionsView />
-        </div>
+        itTab === 'new-entry' ? (
+          <div className="content-area">
+            <InterestTrackerForm onSuccess={() => setItTab('submissions')} userEmail={userEmail} />
+          </div>
+        ) : (
+          <div className="content-area wide">
+            <InterestTrackerSubmissionsView />
+          </div>
+        )
       )}
     </div>
   );
@@ -1415,6 +1463,853 @@ function SubmissionsView() {
                     Done
                   </button>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ============================================================
+   Interest Tracker — New Entry Form
+   ============================================================ */
+function InterestTrackerForm({ onSuccess, userEmail }: { onSuccess: () => void; userEmail: string }) {
+  const [ownerNumber, setOwnerNumber] = useState('');
+  const [ownerName, setOwnerName] = useState('');
+  const [ownerDisplay, setOwnerDisplay] = useState('');
+  const [interestRate, setInterestRate] = useState('');
+  const [interestStartDate, setInterestStartDate] = useState('');
+  const [interestEndDate, setInterestEndDate] = useState('');
+  const [amountDue, setAmountDue] = useState('');
+  const [notes, setNotes] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const mapOwners = useCallback((data: any[]) => data, []);
+
+  const sanitizeRate = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = parseFloat(e.target.value);
+    if (val < 0) val = Math.abs(val);
+    if (val > 100) val = 100;
+    setInterestRate(e.target.value);
+  };
+
+  const sanitizeAmount = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    if (val < 0) e.target.value = Math.abs(val).toString();
+    setAmountDue(e.target.value);
+  };
+
+  const formatAmount = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      const val = Math.abs(parseFloat(e.target.value));
+      if (isNaN(val)) { setAmountDue(''); return; }
+      setAmountDue(val.toFixed(2));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!ownerNumber) { alert('Please select an Owner'); return; }
+    if (!interestRate) { alert('Please enter % Interest Charged'); return; }
+    if (!interestStartDate) { alert('Please enter Interest Start Date'); return; }
+    if (!interestEndDate) { alert('Please enter Interest End Date'); return; }
+    if (!amountDue) { alert('Please enter Amount Due'); return; }
+
+    const amt = parseFloat(amountDue);
+    if (isNaN(amt) || amt < 0) { alert('Please enter a valid Amount Due'); return; }
+
+    setSubmitting(true);
+    try {
+      let uploadedPaths: string[] = [];
+      if (attachments.length > 0) {
+        const formData = new FormData();
+        attachments.forEach((f) => formData.append('files', f));
+        formData.append('folder', 'interest-tracker');
+        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+        if (!uploadRes.ok) throw new Error('Failed to upload attachments');
+        const uploadData = await uploadRes.json();
+        uploadedPaths = uploadData.paths;
+      }
+
+      const res = await fetch('/api/interest-tracker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          owner_number: ownerNumber,
+          owner_name: ownerName,
+          interest_rate: interestRate,
+          interest_start_date: interestStartDate,
+          interest_end_date: interestEndDate,
+          amount_due: amountDue,
+          notes,
+          attachments: uploadedPaths,
+          created_by: userEmail,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to submit');
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setOwnerNumber(''); setOwnerName(''); setOwnerDisplay('');
+        setInterestRate(''); setInterestStartDate(''); setInterestEndDate('');
+        setAmountDue(''); setNotes(''); setAttachments([]);
+        onSuccess();
+      }, 1800);
+    } catch (err) {
+      console.error('Submit error:', err);
+      alert('Failed to submit. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="form-card">
+        <div className="form-card-accent" />
+        <div className="form-card-body">
+          <h1 className="form-card-title">New Interest Tracker Entry</h1>
+          <p className="form-card-subtitle">Submitting as {userEmail}</p>
+
+          <form onSubmit={handleSubmit}>
+            {/* Owner */}
+            <div className="form-group">
+              <label className="form-label">
+                Owner # - Owner Name <span className="required">*</span>
+              </label>
+              <SearchDropdown
+                placeholder="Search by owner # or name..."
+                value={ownerNumber}
+                displayValue={ownerDisplay}
+                onChange={(val, display) => {
+                  setOwnerNumber(val);
+                  setOwnerDisplay(display);
+                  setOwnerName('');
+                }}
+                onSelect={(item: any) => {
+                  setOwnerNumber(item.owner_number || '');
+                  setOwnerName(item.owner_name || '');
+                  setOwnerDisplay(
+                    item.owner_name
+                      ? `${item.owner_number} \u2013 ${item.owner_name}`
+                      : item.owner_number || ''
+                  );
+                }}
+                fetchUrl="/api/owners"
+                mapResult={mapOwners}
+                renderOption={(item: any) => (
+                  <>
+                    <span className="search-option-number">{item.owner_number}</span>
+                    <span className="search-option-name">{item.owner_name}</span>
+                  </>
+                )}
+              />
+            </div>
+
+            {/* % Interest Charged */}
+            <div className="form-group">
+              <label className="form-label">
+                % Interest Charged <span className="required">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                className="form-input"
+                placeholder="e.g. 5.25"
+                value={interestRate}
+                onChange={sanitizeRate}
+                required
+              />
+            </div>
+
+            {/* Interest Start Date (Prod) */}
+            <div className="form-group">
+              <label className="form-label">
+                Interest Start Date (Prod) <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Enter start date"
+                value={interestStartDate}
+                onChange={(e) => setInterestStartDate(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Interest End Date (Prod) */}
+            <div className="form-group">
+              <label className="form-label">
+                Interest End Date (Prod) <span className="required">*</span>
+              </label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Enter end date"
+                value={interestEndDate}
+                onChange={(e) => setInterestEndDate(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Amount Due */}
+            <div className="form-group">
+              <label className="form-label">
+                Amount Due <span className="required">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className="form-input"
+                placeholder="0.00"
+                value={amountDue}
+                onChange={sanitizeAmount}
+                onBlur={formatAmount}
+                required
+              />
+            </div>
+
+            {/* Notes */}
+            <div className="form-group">
+              <label className="form-label">Notes</label>
+              <textarea
+                className="form-textarea"
+                placeholder="Input Notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+
+            {/* Attachments */}
+            <div className="attach-section">
+              <label className="form-label">Attachments</label>
+              {attachments.length === 0 ? (
+                <p className="attach-empty">There is nothing attached.</p>
+              ) : (
+                <div className="attach-list">
+                  {attachments.map((file, i) => (
+                    <div key={i} className="attach-item">
+                      <a
+                        href={URL.createObjectURL(file)}
+                        download={file.name}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--primary)', textDecoration: 'none' }}
+                      >
+                        📎 {file.name}
+                      </a>
+                      <button
+                        type="button"
+                        className="attach-remove"
+                        onClick={() => setAttachments((p) => p.filter((_, j) => j !== i))}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const newFiles = e.target.files ? Array.from(e.target.files) : [];
+                  if (newFiles.length > 0) setAttachments((p) => [...p, ...newFiles]);
+                  if (fileInputRef.current) fileInputRef.current.value = '';
+                }}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                className="attach-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                📎 Attach file
+              </button>
+            </div>
+
+            <button type="submit" className="submit-btn" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Submit'}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {showSuccess && (
+        <div className="toast-overlay">
+          <div className="toast">
+            <div className="toast-icon">✓</div>
+            <h3>Submitted Successfully</h3>
+            <p>Your interest tracker entry is now pending.</p>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ============================================================
+   Interest Tracker — Submissions View
+   ============================================================ */
+function InterestTrackerSubmissionsView() {
+  const [submissions, setSubmissions] = useState<InterestTrackerSubmission[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState<SubmissionFilters>({
+    search: '', status: '', createdBy: '', dateFrom: '', dateTo: '',
+  });
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [detailIndex, setDetailIndex] = useState<number | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editData, setEditData] = useState<Partial<InterestTrackerSubmission>>({});
+  const [editAttachments, setEditAttachments] = useState<string[]>([]);
+  const editFileRef = useRef<HTMLInputElement>(null);
+
+  // Notes column resize
+  const [notesWidth, setNotesWidth] = useState(200);
+  const resizeStartX = useRef(0);
+  const resizeStartW = useRef(0);
+
+  const onNotesResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    resizeStartX.current = e.clientX;
+    resizeStartW.current = notesWidth;
+    const onMouseMove = (ev: MouseEvent) => {
+      const diff = ev.clientX - resizeStartX.current;
+      setNotesWidth(Math.max(80, resizeStartW.current + diff));
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }, [notesWidth]);
+
+  const fetchSubmissions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/interest-tracker');
+      const data = await res.json();
+      if (Array.isArray(data)) setSubmissions(data);
+    } catch (err) {
+      console.error('Error fetching interest tracker submissions:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
+
+  // Filtering
+  const filtered = submissions.filter((s) => {
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      if (
+        !s.owner_number.toLowerCase().includes(q) &&
+        !(s.owner_name || '').toLowerCase().includes(q)
+      )
+        return false;
+    }
+    if (filters.status && s.completion_status !== filters.status) return false;
+    if (filters.createdBy && s.created_by !== filters.createdBy) return false;
+    if (filters.dateFrom) {
+      const rd = new Date(s.request_date).toISOString().slice(0, 10);
+      if (rd < filters.dateFrom) return false;
+    }
+    if (filters.dateTo) {
+      const rd = new Date(s.request_date).toISOString().slice(0, 10);
+      if (rd > filters.dateTo) return false;
+    }
+    return true;
+  }).sort((a, b) => new Date(b.request_date).getTime() - new Date(a.request_date).getTime());
+
+  const uniqueUsers = [...new Set(submissions.map((s) => s.created_by))].sort();
+
+  const clearFilters = () =>
+    setFilters({ search: '', status: '', createdBy: '', dateFrom: '', dateTo: '' });
+
+  const activeFilterTags = [
+    filters.search && { label: `Search: ${filters.search}`, key: 'search' as const },
+    filters.status && { label: `Status: ${filters.status}`, key: 'status' as const },
+    filters.createdBy && { label: `By: ${filters.createdBy.split('@')[0]}`, key: 'createdBy' as const },
+    filters.dateFrom && { label: `From: ${formatDate(filters.dateFrom)}`, key: 'dateFrom' as const },
+    filters.dateTo && { label: `To: ${formatDate(filters.dateTo)}`, key: 'dateTo' as const },
+  ].filter(Boolean) as { label: string; key: keyof SubmissionFilters }[];
+
+  // Selection
+  const filteredIds = new Set(filtered.map((s) => s.id!));
+  const allSelected = filtered.length > 0 && filtered.every((s) => selectedRows.has(s.id!));
+  const someSelected = filtered.some((s) => selectedRows.has(s.id!));
+
+  const toggleRow = (id: string) => {
+    setSelectedRows((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedRows((prev) => {
+        const next = new Set(prev);
+        filteredIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelectedRows((prev) => {
+        const next = new Set(prev);
+        filteredIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  };
+
+  const applyBulk = async () => {
+    if (!bulkStatus || selectedRows.size === 0) return;
+    const n = selectedRows.size;
+    if (!confirm(`Change status to "${bulkStatus}" for ${n} submission${n > 1 ? 's' : ''}?`))
+      return;
+    try {
+      const res = await fetch('/api/interest-tracker', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedRows), completion_status: bulkStatus }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setSelectedRows(new Set());
+      setBulkStatus('');
+      fetchSubmissions();
+    } catch {
+      alert('Failed to update. Please try again.');
+    }
+  };
+
+  const clearSelection = () => { setSelectedRows(new Set()); setBulkStatus(''); };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      const res = await fetch('/api/interest-tracker', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, completion_status: newStatus }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      fetchSubmissions();
+    } catch {
+      alert('Failed to update status.');
+    }
+  };
+
+  const handleDelete = async (sub: InterestTrackerSubmission) => {
+    if (!confirm(`Are you sure you want to delete this entry?\n\nOwner: ${sub.owner_number} — Amount Due: ${formatCurrency(sub.amount_due)}\n\nThis action cannot be undone.`))
+      return;
+    try {
+      const res = await fetch('/api/interest-tracker', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: sub.id }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      closeDetail();
+      fetchSubmissions();
+    } catch {
+      alert('Failed to delete. Please try again.');
+    }
+  };
+
+  const startEdit = (sub: InterestTrackerSubmission) => {
+    setEditMode(true);
+    setEditData({
+      owner_number: sub.owner_number,
+      owner_name: sub.owner_name,
+      interest_rate: sub.interest_rate,
+      interest_start_date: sub.interest_start_date,
+      interest_end_date: sub.interest_end_date,
+      amount_due: sub.amount_due,
+      notes: sub.notes,
+      completion_status: sub.completion_status,
+    });
+    setEditAttachments(sub.attachments ? [...sub.attachments] : []);
+  };
+
+  const saveEdit = async () => {
+    if (detailIndex === null) return;
+    const sub = submissions[detailIndex];
+    if (!editData.owner_number) { alert('Please fill in all required fields.'); return; }
+    try {
+      const res = await fetch('/api/interest-tracker', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: sub.id, ...editData, attachments: editAttachments }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setEditMode(false);
+      fetchSubmissions();
+    } catch {
+      alert('Failed to save changes.');
+    }
+  };
+
+  const openDetail = (index: number) => { setDetailIndex(index); setEditMode(false); };
+  const closeDetail = () => { setDetailIndex(null); setEditMode(false); };
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') closeDetail(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  const detailSub = detailIndex !== null ? submissions[detailIndex] : null;
+
+  const ownerDisp = (s: InterestTrackerSubmission) =>
+    s.owner_name ? `${s.owner_number} \u2013 ${s.owner_name}` : s.owner_number;
+
+  return (
+    <>
+      <div className="submissions-card">
+        <div className="form-card-accent" />
+        <div className="submissions-header">
+          <h2>Submissions</h2>
+          <span className="submissions-count">{filtered.length} of {submissions.length}</span>
+        </div>
+
+        {/* Bulk bar */}
+        {selectedRows.size > 0 && (
+          <div className="bulk-bar">
+            <span className="bulk-count">{selectedRows.size} selected</span>
+            <select className="bulk-select" value={bulkStatus} onChange={(e) => setBulkStatus(e.target.value)}>
+              <option value="">Change status to...</option>
+              <option value="Pending">Pending</option>
+              <option value="Complete">Complete</option>
+              <option value="Request Invalidated">Request Invalidated</option>
+            </select>
+            <button className="bulk-apply" disabled={!bulkStatus} onClick={applyBulk}>Apply</button>
+            <button className="bulk-cancel" onClick={clearSelection}>Cancel</button>
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="filters-bar">
+          <div className="filter-group">
+            <span className="filter-label">Search</span>
+            <input className="filter-input" placeholder="Owner # or Name" value={filters.search}
+              onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))} />
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Status</span>
+            <select className="filter-select" value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}>
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Complete">Complete</option>
+              <option value="Request Invalidated">Request Invalidated</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Created By</span>
+            <select className="filter-select" value={filters.createdBy} onChange={(e) => setFilters((f) => ({ ...f, createdBy: e.target.value }))}>
+              <option value="">All Users</option>
+              {uniqueUsers.map((u) => <option key={u} value={u}>{u.split('@')[0]}</option>)}
+            </select>
+          </div>
+          <div className="filter-divider" />
+          <div className="filter-group">
+            <span className="filter-label">Request Date From</span>
+            <input type="date" className="filter-input filter-date" value={filters.dateFrom} onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))} />
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Request Date To</span>
+            <input type="date" className="filter-input filter-date" value={filters.dateTo} onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))} />
+          </div>
+          <button className="filter-clear" onClick={clearFilters}>Clear All</button>
+        </div>
+
+        {activeFilterTags.length > 0 && (
+          <div className="active-filters">
+            {activeFilterTags.map((t) => (
+              <span key={t.key} className="filter-tag">
+                {t.label}
+                <button className="filter-tag-remove" onClick={() => setFilters((f) => ({ ...f, [t.key]: '' }))}>×</button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Table */}
+        {loading ? (
+          <div className="empty-state"><p>Loading submissions...</p></div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <p>{submissions.length ? 'No submissions match your filters' : 'No submissions yet'}</p>
+          </div>
+        ) : (
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>
+                    <input type="checkbox" className="row-checkbox" checked={allSelected}
+                      ref={(el) => { if (el) el.indeterminate = someSelected && !allSelected; }}
+                      onChange={toggleAll} />
+                  </th>
+                  <th>#</th>
+                  <th>Owner #</th>
+                  <th>% Interest Charged</th>
+                  <th>Interest Start Date (Prod)</th>
+                  <th>Interest End Date (Prod)</th>
+                  <th>Amount Due</th>
+                  <th style={{ width: notesWidth, minWidth: 80, position: 'relative' }}>
+                    Notes
+                    <span className="col-resize-handle" onMouseDown={onNotesResizeStart} />
+                  </th>
+                  <th>Completion Status</th>
+                  <th>Sign-Off Date</th>
+                  <th>Created By</th>
+                  <th>Attachments</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((s, i) => {
+                  const ac = s.attachments?.length || 0;
+                  return (
+                    <tr key={s.id}>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <input type="checkbox" className="row-checkbox" checked={selectedRows.has(s.id!)} onChange={() => toggleRow(s.id!)} />
+                      </td>
+                      <td style={{ color: 'var(--text-muted)' }} onClick={() => openDetail(submissions.indexOf(s))}>{i + 1}</td>
+                      <td style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{ownerDisp(s)}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_rate}%</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_start_date || '\u2014'}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_end_date || '\u2014'}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.amount_due)}</td>
+                      <td className="cell-truncate" style={{ maxWidth: notesWidth }} onClick={() => openDetail(submissions.indexOf(s))} title={s.notes || ''}>{s.notes || '\u2014'}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>
+                        <span className={`status ${statusClass(s.completion_status)}`}>{s.completion_status}</span>
+                      </td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.sign_off_date)}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.created_by}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{ac > 0 ? `📎 ${ac}` : '\u2014'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Detail / Edit Modal */}
+      {detailSub && (
+        <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) closeDetail(); }}>
+          <div className="modal">
+            <div className="modal-header">
+              <h2>{editMode ? 'Editing Entry' : 'Entry Detail'} — {ownerDisp(detailSub)}</h2>
+              <div className="modal-actions">
+                {editMode ? (
+                  <>
+                    <button className="save-btn" onClick={saveEdit}>Save</button>
+                    <button className="cancel-edit-btn" onClick={() => setEditMode(false)}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button className="delete-btn" onClick={() => handleDelete(detailSub)}>🗑 Delete</button>
+                    <button className="edit-btn" onClick={() => startEdit(detailSub)}>✎ Edit</button>
+                  </>
+                )}
+                <button className="modal-close" onClick={closeDetail}>×</button>
+              </div>
+            </div>
+            <div className="modal-body">
+              {editMode ? (
+                <div className="detail-grid">
+                  <div className="detail-field">
+                    <div className="detail-label">Owner</div>
+                    <SearchDropdown
+                      placeholder="Search owner..."
+                      value={editData.owner_number || ''}
+                      displayValue={editData.owner_name ? `${editData.owner_number} \u2013 ${editData.owner_name}` : editData.owner_number || ''}
+                      onChange={(val) => setEditData((d) => ({ ...d, owner_number: val, owner_name: '' }))}
+                      onSelect={(item: any) => setEditData((d) => ({ ...d, owner_number: item.owner_number, owner_name: item.owner_name || '' }))}
+                      fetchUrl="/api/owners"
+                      mapResult={(d) => d}
+                      renderOption={(item: any) => (
+                        <>
+                          <span className="search-option-number">{item.owner_number}</span>
+                          <span className="search-option-name">{item.owner_name}</span>
+                        </>
+                      )}
+                    />
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">% Interest Charged</div>
+                    <input type="number" step="0.01" min="0" max="100" className="edit-input"
+                      value={editData.interest_rate ?? ''}
+                      onChange={(e) => setEditData((d) => ({ ...d, interest_rate: parseFloat(e.target.value) }))} />
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">Interest Start Date (Prod)</div>
+                    <input type="text" className="edit-input" value={editData.interest_start_date || ''}
+                      onChange={(e) => setEditData((d) => ({ ...d, interest_start_date: e.target.value }))} />
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">Interest End Date (Prod)</div>
+                    <input type="text" className="edit-input" value={editData.interest_end_date || ''}
+                      onChange={(e) => setEditData((d) => ({ ...d, interest_end_date: e.target.value }))} />
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">Amount Due</div>
+                    <input type="number" step="0.01" min="0" className="edit-input"
+                      value={editData.amount_due?.toFixed(2) ?? ''}
+                      onChange={(e) => {
+                        let v = parseFloat(e.target.value);
+                        if (v < 0) v = Math.abs(v);
+                        setEditData((d) => ({ ...d, amount_due: v }));
+                      }} />
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">Completion Status</div>
+                    <select className="edit-input" value={editData.completion_status || 'Pending'}
+                      onChange={(e) => setEditData((d) => ({ ...d, completion_status: e.target.value as any }))}>
+                      <option value="Pending">Pending</option>
+                      <option value="Complete">Complete</option>
+                      <option value="Request Invalidated">Request Invalidated</option>
+                    </select>
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">Request Date</div>
+                    <div className="detail-value" style={{ paddingTop: 8 }}>{formatDate(detailSub.request_date)}</div>
+                  </div>
+                  <div className="detail-field">
+                    <div className="detail-label">Created By</div>
+                    <div className="detail-value" style={{ paddingTop: 8 }}>{detailSub.created_by}</div>
+                  </div>
+                  <div className="detail-field full">
+                    <div className="detail-label">Notes</div>
+                    <textarea className="edit-textarea" value={editData.notes || ''}
+                      onChange={(e) => setEditData((d) => ({ ...d, notes: e.target.value }))} />
+                  </div>
+                  <div className="detail-field full">
+                    <div className="detail-label">Attachments</div>
+                    {editAttachments.length === 0 ? (
+                      <p className="attach-empty">No attachments</p>
+                    ) : (
+                      <div className="attach-list">
+                        {editAttachments.map((f, i) => (
+                          <div key={i} className="attach-item">
+                            <span>📎 {f}</span>
+                            <button type="button" className="attach-remove" onClick={() => setEditAttachments((p) => p.filter((_, j) => j !== i))}>×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <input ref={editFileRef} type="file" multiple
+                      onChange={(e) => {
+                        if (e.target.files) setEditAttachments((p) => [...p, ...Array.from(e.target.files!).map((f) => f.name)]);
+                        if (editFileRef.current) editFileRef.current.value = '';
+                      }}
+                      style={{ display: 'none' }} />
+                    <button type="button" className="attach-btn" style={{ marginTop: 8 }} onClick={() => editFileRef.current?.click()}>📎 Attach file</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="detail-grid">
+                    <div className="detail-field">
+                      <div className="detail-label">Owner</div>
+                      <div className="detail-value" style={{ fontWeight: 600 }}>{ownerDisp(detailSub)}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">% Interest Charged</div>
+                      <div className="detail-value">{detailSub.interest_rate}%</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Interest Start Date (Prod)</div>
+                      <div className="detail-value">{detailSub.interest_start_date || '\u2014'}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Interest End Date (Prod)</div>
+                      <div className="detail-value">{detailSub.interest_end_date || '\u2014'}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Amount Due</div>
+                      <div className="detail-value">{formatCurrency(detailSub.amount_due)}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Request Date</div>
+                      <div className="detail-value">{formatDate(detailSub.request_date)}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Created By</div>
+                      <div className="detail-value">{detailSub.created_by}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Sign-Off Date</div>
+                      <div className="detail-value">{formatDate(detailSub.sign_off_date)}</div>
+                    </div>
+                    <div className="detail-field">
+                      <div className="detail-label">Completion Status</div>
+                      <div className="detail-value">
+                        <span className={`status ${statusClass(detailSub.completion_status)}`}>{detailSub.completion_status}</span>
+                      </div>
+                    </div>
+                    <div className="detail-field full">
+                      <div className="detail-label">Notes</div>
+                      <div className={`detail-notes ${detailSub.notes ? '' : 'empty'}`}>{detailSub.notes || 'No notes provided'}</div>
+                    </div>
+                    <div className="detail-field full">
+                      <div className="detail-label">Attachments</div>
+                      {detailSub.attachments?.length ? (
+                        <div className="detail-attachments">
+                          {detailSub.attachments.map((a, i) => {
+                            const fileName = a.split('/').pop() || a;
+                            const displayName = fileName.replace(/^\d+-/, '');
+                            return (
+                              <div key={i} className="detail-attach-item"
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(`/api/download?path=${encodeURIComponent(a)}`);
+                                    const data = await res.json();
+                                    if (data.url) window.open(data.url, '_blank');
+                                    else alert('Failed to get download link.');
+                                  } catch { alert('Failed to open file.'); }
+                                }}>
+                                📎 {displayName}
+                                <span className="attach-dl">Open ↗</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: 13 }}>No attachments</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="detail-status-row">
+                    <label>Update Status:</label>
+                    <select className="detail-status-select" value={detailSub.completion_status}
+                      onChange={(e) => handleStatusChange(detailSub.id!, e.target.value)}>
+                      <option value="Pending">Pending</option>
+                      <option value="Complete">Complete</option>
+                      <option value="Request Invalidated">Request Invalidated</option>
+                    </select>
+                  </div>
+                </>
               )}
             </div>
           </div>

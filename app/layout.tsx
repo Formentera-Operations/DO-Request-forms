@@ -3,8 +3,8 @@ import Providers from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Void Checks',
-  description: 'Void check request management',
+  title: 'DO Request Forms',
+  description: 'Void check and interest tracker request management',
 };
 
 export default function RootLayout({

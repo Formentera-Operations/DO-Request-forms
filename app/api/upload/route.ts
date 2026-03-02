@@ -13,12 +13,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 });
     }
 
+    const folder = (formData.get('folder') as string) || 'void-checks';
     const uploaded: string[] = [];
 
     for (const file of files) {
       const timestamp = Date.now();
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const path = `void-checks/${timestamp}-${safeName}`;
+      const path = `${folder}/${timestamp}-${safeName}`;
 
       const buffer = Buffer.from(await file.arrayBuffer());
 

@@ -11,6 +11,11 @@ export interface SnowflakeCheck {
   CHECK_DATE: string;
 }
 
+export interface SnowflakeOwner {
+  ENTITY_CODE: string;
+  ENTITY_NAME: string;
+}
+
 /**
  * Execute a query against Snowflake and return results.
  * Connections are created per-request and destroyed after use.
@@ -58,6 +63,23 @@ export async function querySnowflake<T = any>(
       });
     });
   });
+}
+
+/**
+ * Fetch distinct owners from DIM_REVENUE_CHECK_REGISTER.
+ * TODO: Replace with dedicated owner/entity table once provided.
+ */
+export async function getOwners(search?: string): Promise<SnowflakeOwner[]> {
+  let sql = `SELECT DISTINCT ENTITY_CODE, ENTITY_NAME FROM FO_PRODUCTION_DB.MARTS.DIM_REVENUE_CHECK_REGISTER WHERE CHECK_TYPE = 'CHECK' AND COMPANY_CODE = '200'`;
+  const binds: any[] = [];
+
+  if (search && search.trim()) {
+    sql += ` AND (ENTITY_CODE ILIKE ? OR ENTITY_NAME ILIKE ?)`;
+    binds.push(`%${search}%`, `%${search}%`);
+  }
+
+  sql += ` ORDER BY ENTITY_CODE LIMIT 50`;
+  return querySnowflake<SnowflakeOwner>(sql, binds);
 }
 
 /**

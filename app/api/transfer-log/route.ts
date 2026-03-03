@@ -111,9 +111,21 @@ export async function POST(request: NextRequest) {
               <tr><td style="${th}">Search Key</td><td style="${td}">${submission.search_key || '\u2014'}</td></tr>
               <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '\u2014'}</td></tr>
             </table>
-            <p style="margin: 16px 0;">
-              <a href="${detailLink}" style="display: inline-block; padding: 8px 16px; background: #0078d4; color: #fff; text-decoration: none; border-radius: 4px; font-size: 13px;">View Entry</a>
-            </p>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+              <tr>
+                <td style="background: #0078d4; border-radius: 6px; text-align: center;">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:44px;v-text-anchor:middle;width:160px;" arcsize="14%" strokecolor="#0078d4" fillcolor="#0078d4">
+                  <w:anchorlock/>
+                  <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry</center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="${detailLink}" style="display: inline-block; padding: 12px 28px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; mso-hide: all;">View Entry</a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+            </table>
             <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
             <p style="font-size: 11px; color: #8c93a3;">
               This is an automated confirmation from the DO Request Forms App.
@@ -191,9 +203,21 @@ async function sendCompletionEmail(sub: any, supabase: any) {
             <tr><td style="${th}">Search Key</td><td style="${td}">${sub.search_key || '\u2014'}</td></tr>
             <tr><td style="${th}">Notes</td><td style="${td}">${sub.notes || '\u2014'}</td></tr>
           </table>
-          <p style="margin: 16px 0;">
-            <a href="${detailLink}" style="display: inline-block; padding: 8px 16px; background: #0078d4; color: #fff; text-decoration: none; border-radius: 4px; font-size: 13px;">View Entry</a>
-          </p>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+            <tr>
+              <td style="background: #0078d4; border-radius: 6px; text-align: center;">
+                <!--[if mso]>
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:44px;v-text-anchor:middle;width:160px;" arcsize="14%" strokecolor="#0078d4" fillcolor="#0078d4">
+                <w:anchorlock/>
+                <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry</center>
+                </v:roundrect>
+                <![endif]-->
+                <!--[if !mso]><!-->
+                <a href="${detailLink}" style="display: inline-block; padding: 12px 28px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; mso-hide: all;">View Entry</a>
+                <!--<![endif]-->
+              </td>
+            </tr>
+          </table>
           <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
           <p style="font-size: 11px; color: #8c93a3;">
             This is an automated confirmation from the DO Request Forms App.

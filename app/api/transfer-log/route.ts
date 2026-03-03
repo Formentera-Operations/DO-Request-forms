@@ -113,15 +113,15 @@ export async function POST(request: NextRequest) {
             </table>
             <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
               <tr>
-                <td style="background: #0078d4; border-radius: 6px; text-align: center;">
+                <td style="background: #0078d4; border-radius: 50px; text-align: center;">
                   <!--[if mso]>
-                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:44px;v-text-anchor:middle;width:160px;" arcsize="14%" strokecolor="#0078d4" fillcolor="#0078d4">
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="50%" strokecolor="#0078d4" fillcolor="#0078d4">
                   <w:anchorlock/>
-                  <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry</center>
+                  <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry &rarr;</center>
                   </v:roundrect>
                   <![endif]-->
                   <!--[if !mso]><!-->
-                  <a href="${detailLink}" style="display: inline-block; padding: 12px 28px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; mso-hide: all;">View Entry</a>
+                  <a href="${detailLink}" style="display: inline-block; padding: 14px 32px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; letter-spacing: 0.3px; mso-hide: all;">View Entry &nbsp;&rarr;</a>
                   <!--<![endif]-->
                 </td>
               </tr>
@@ -205,15 +205,15 @@ async function sendCompletionEmail(sub: any, supabase: any) {
           </table>
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
             <tr>
-              <td style="background: #0078d4; border-radius: 6px; text-align: center;">
+              <td style="background: #0078d4; border-radius: 50px; text-align: center;">
                 <!--[if mso]>
-                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:44px;v-text-anchor:middle;width:160px;" arcsize="14%" strokecolor="#0078d4" fillcolor="#0078d4">
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="50%" strokecolor="#0078d4" fillcolor="#0078d4">
                 <w:anchorlock/>
-                <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry</center>
+                <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry &rarr;</center>
                 </v:roundrect>
                 <![endif]-->
                 <!--[if !mso]><!-->
-                <a href="${detailLink}" style="display: inline-block; padding: 12px 28px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; mso-hide: all;">View Entry</a>
+                <a href="${detailLink}" style="display: inline-block; padding: 14px 32px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; letter-spacing: 0.3px; mso-hide: all;">View Entry &nbsp;&rarr;</a>
                 <!--<![endif]-->
               </td>
             </tr>

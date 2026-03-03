@@ -43,10 +43,13 @@ function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () =
    ============================================================ */
 function formatDate(d: string | null) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-US', {
+  // Parse as UTC to avoid timezone shift (date-only strings like "2026-01-25" are UTC)
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone: 'UTC',
   });
 }
 
@@ -454,11 +457,8 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
                   setCheckAmount(isNaN(amt) ? '' : amt.toFixed(2));
                   const raw = item.check_date || '';
                   if (raw) {
-                    const d = new Date(raw);
-                    const dd = String(d.getDate()).padStart(2, '0');
-                    const mm = String(d.getMonth() + 1).padStart(2, '0');
-                    const yyyy = d.getFullYear();
-                    setCheckDate(`${mm}-${dd}-${yyyy}`);
+                    const parts = raw.split('T')[0].split('-');
+                    setCheckDate(`${parts[1]}-${parts[2]}-${parts[0]}`);
                   } else {
                     setCheckDate('');
                   }

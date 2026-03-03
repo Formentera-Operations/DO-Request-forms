@@ -16,6 +16,12 @@ export interface SnowflakeOwner {
   OWNER_NAME: string;
 }
 
+export interface SnowflakeWell {
+  COST_CENTER_NUMBER: string;
+  WELL_NAME: string;
+  SEARCH_KEY: string;
+}
+
 /**
  * Execute a query against Snowflake and return results.
  * Connections are created per-request and destroyed after use.
@@ -79,6 +85,22 @@ export async function getOwners(search?: string): Promise<SnowflakeOwner[]> {
 
   sql += ` ORDER BY OWNER_CODE LIMIT 50`;
   return querySnowflake<SnowflakeOwner>(sql, binds);
+}
+
+/**
+ * Fetch wells from GOLD_ASSET_HIERARCHY.DIM_WELL.
+ */
+export async function getWells(search?: string): Promise<SnowflakeWell[]> {
+  let sql = `SELECT COST_CENTER_NUMBER, WELL_NAME, SEARCH_KEY FROM FO_PRODUCTION_DB.GOLD_ASSET_HIERARCHY.DIM_WELL`;
+  const binds: any[] = [];
+
+  if (search && search.trim()) {
+    sql += ` WHERE (COST_CENTER_NUMBER ILIKE ? OR WELL_NAME ILIKE ?)`;
+    binds.push(`%${search}%`, `%${search}%`);
+  }
+
+  sql += ` ORDER BY COST_CENTER_NUMBER LIMIT 50`;
+  return querySnowflake<SnowflakeWell>(sql, binds);
 }
 
 /**

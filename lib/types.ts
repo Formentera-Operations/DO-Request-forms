@@ -43,7 +43,27 @@ export interface OwnerOption {
   owner_name: string;
 }
 
-export type AppView = 'void-checks' | 'interest-tracker';
+export interface TransferLogSubmission {
+  id?: string;
+  accounting_group: 'JIB' | 'Revenue';
+  well_code: string;
+  well_name: string;
+  search_key: string;
+  notes: string;
+  request_date: string;
+  completion_status: 'Pending' | 'Complete' | 'Request Invalidated';
+  sign_off_date: string | null;
+  created_by: string;
+  attachments?: string[];
+}
+
+export interface WellOption {
+  well_code: string;
+  well_name: string;
+  search_key: string;
+}
+
+export type AppView = 'void-checks' | 'interest-tracker' | 'transfer-log';
 
 export type TabView = 'new-entry' | 'submissions';
 

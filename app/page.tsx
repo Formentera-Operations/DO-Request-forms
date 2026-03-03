@@ -177,6 +177,21 @@ export default function VoidChecksPage() {
   const [tlTab, setTlTab] = useState<TabView>('new-entry');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [deepLinkId, setDeepLinkId] = useState<string | null>(null);
+
+  // Handle deep link URL params: ?app=transfer-log&id=xxx
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const app = params.get('app');
+    const id = params.get('id');
+    if (app === 'transfer-log') {
+      setActiveApp('transfer-log');
+      setTlTab('submissions');
+      if (id) setDeepLinkId(id);
+      // Clean URL without reload
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   useClickOutside(menuRef, () => setMenuOpen(false));
 
@@ -276,7 +291,7 @@ export default function VoidChecksPage() {
           </div>
         ) : (
           <div className="content-area wide">
-            <TransferLogSubmissionsView />
+            <TransferLogSubmissionsView openId={deepLinkId} onOpenIdHandled={() => setDeepLinkId(null)} />
           </div>
         )
       )}
@@ -2598,7 +2613,7 @@ function TransferLogForm({ onSuccess, userEmail }: { onSuccess: () => void; user
 /* ============================================================
    Transfer Log — Submissions View
    ============================================================ */
-function TransferLogSubmissionsView() {
+function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; onOpenIdHandled?: () => void }) {
   const [submissions, setSubmissions] = useState<TransferLogSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<SubmissionFilters>({
@@ -2650,6 +2665,15 @@ function TransferLogSubmissionsView() {
   }, []);
 
   useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
+
+  // Auto-open detail from deep link
+  useEffect(() => {
+    if (openId && submissions.length > 0 && !loading) {
+      const idx = submissions.findIndex((s) => s.id === openId);
+      if (idx !== -1) setDetailIndex(idx);
+      onOpenIdHandled?.();
+    }
+  }, [openId, submissions, loading, onOpenIdHandled]);
 
   // Filtering
   const filtered = submissions.filter((s) => {

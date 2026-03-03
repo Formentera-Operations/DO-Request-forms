@@ -77,6 +77,59 @@ function exportToCsv(filename: string, headers: string[], rows: string[][]) {
   URL.revokeObjectURL(url);
 }
 
+async function exportToExcel(
+  filename: string,
+  headers: string[],
+  rows: string[][],
+  dropdowns?: { col: number; options: string[] }[],
+) {
+  const ExcelJS = (await import('exceljs')).default;
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('Sheet1');
+
+  // Header row
+  const headerRow = ws.addRow(headers);
+  headerRow.eachCell((cell) => {
+    cell.font = { bold: true };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF7F8FA' } };
+    cell.border = {
+      bottom: { style: 'thin', color: { argb: 'FFD4DAE3' } },
+    };
+  });
+
+  // Data rows
+  rows.forEach((r) => ws.addRow(r));
+
+  // Auto-width columns
+  ws.columns.forEach((col, i) => {
+    let max = headers[i]?.length || 10;
+    rows.forEach((r) => { if (r[i] && r[i].length > max) max = r[i].length; });
+    col.width = Math.min(max + 4, 40);
+  });
+
+  // Add dropdowns
+  if (dropdowns) {
+    for (const dd of dropdowns) {
+      for (let r = 2; r <= rows.length + 1; r++) {
+        ws.getCell(r, dd.col + 1).dataValidation = {
+          type: 'list',
+          allowBlank: false,
+          formulae: [`"${dd.options.join(',')}"`],
+        };
+      }
+    }
+  }
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 /* ============================================================
    SearchDropdown — reusable search-as-you-type component
    ============================================================ */
@@ -1031,9 +1084,11 @@ function SubmissionsView() {
               formatDate(s.sign_off_date),
               s.created_by,
             ]);
-            exportToCsv('void-checks.csv', headers, rows);
+            exportToExcel('void-checks.xlsx', headers, rows, [
+              { col: 7, options: ['Pending', 'Complete', 'Request Invalidated'] },
+            ]);
           }}>
-            Export CSV
+            Export
           </button>
         </div>
 
@@ -2150,9 +2205,11 @@ function InterestTrackerSubmissionsView() {
               formatDate(s.sign_off_date),
               s.created_by,
             ]);
-            exportToCsv('interest-tracker.csv', headers, rows);
+            exportToExcel('interest-tracker.xlsx', headers, rows, [
+              { col: 7, options: ['Pending', 'Complete', 'Request Invalidated'] },
+            ]);
           }}>
-            Export CSV
+            Export
           </button>
         </div>
 
@@ -2959,9 +3016,11 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
               s.notes || '',
               s.created_by,
             ]);
-            exportToCsv('transfer-log.csv', headers, rows);
+            exportToExcel('transfer-log.xlsx', headers, rows, [
+              { col: 4, options: ['Pending', 'Complete', 'Request Invalidated'] },
+            ]);
           }}>
-            Export CSV
+            Export
           </button>
         </div>
 

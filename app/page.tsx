@@ -62,6 +62,18 @@ function statusClass(s: string) {
     : 'pending';
 }
 
+function exportToCsv(filename: string, headers: string[], rows: string[][]) {
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const csv = [headers.map(escape).join(','), ...rows.map((r) => r.map(escape).join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 /* ============================================================
    SearchDropdown — reusable search-as-you-type component
    ============================================================ */
@@ -1004,6 +1016,24 @@ function SubmissionsView() {
           </div>
           <button className="filter-clear" onClick={clearFilters}>
             Clear All
+          </button>
+          <button className="export-btn" onClick={() => {
+            const headers = ['Check #', 'Check Amount', 'Owner # - Name', 'Check Date', 'Request Source', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
+            const rows = filtered.map((s) => [
+              s.check_number,
+              formatCurrency(s.check_amount),
+              s.owner_name ? `${s.owner_number} \u2013 ${s.owner_name}` : s.owner_number,
+              formatDate(s.check_date),
+              s.request_source || '',
+              s.notes || '',
+              formatDate(s.request_date),
+              s.completion_status,
+              formatDate(s.sign_off_date),
+              s.created_by,
+            ]);
+            exportToCsv('void-checks.csv', headers, rows);
+          }}>
+            Export CSV
           </button>
         </div>
 
@@ -2106,6 +2136,24 @@ function InterestTrackerSubmissionsView() {
             <input type="date" className="filter-input filter-date" value={filters.dateTo} onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))} />
           </div>
           <button className="filter-clear" onClick={clearFilters}>Clear All</button>
+          <button className="export-btn" onClick={() => {
+            const headers = ['Owner # - Name', '% Interest Charged', 'Interest Start Date', 'Interest End Date', 'Amount Due', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
+            const rows = filtered.map((s) => [
+              ownerDisp(s),
+              `${s.interest_rate}%`,
+              s.interest_start_date || '',
+              s.interest_end_date || '',
+              formatCurrency(s.amount_due),
+              s.notes || '',
+              formatDate(s.request_date),
+              s.completion_status,
+              formatDate(s.sign_off_date),
+              s.created_by,
+            ]);
+            exportToCsv('interest-tracker.csv', headers, rows);
+          }}>
+            Export CSV
+          </button>
         </div>
 
         {activeFilterTags.length > 0 && (
@@ -2899,6 +2947,22 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
             <input type="date" className="filter-input filter-date" value={filters.dateTo} onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))} />
           </div>
           <button className="filter-clear" onClick={clearFilters}>Clear All</button>
+          <button className="export-btn" onClick={() => {
+            const headers = ['Search Key', 'Well Code / Name', 'Accounting Group', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Notes', 'Created By'];
+            const rows = filtered.map((s) => [
+              s.search_key || '',
+              wellDisp(s),
+              s.accounting_group,
+              formatDate(s.request_date),
+              s.completion_status,
+              formatDate(s.sign_off_date),
+              s.notes || '',
+              s.created_by,
+            ]);
+            exportToCsv('transfer-log.csv', headers, rows);
+          }}>
+            Export CSV
+          </button>
         </div>
 
         {activeFilterTags.length > 0 && (

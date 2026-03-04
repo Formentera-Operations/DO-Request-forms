@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const td = 'padding:6px 10px;border:1px solid #d4dae3;font-size:13px;';
+      const td = 'padding:4px 10px;border:1px solid #d4dae3;font-size:13px;line-height:1.3;mso-line-height-rule:exactly;';
       const th = `${td}font-weight:600;background:#f7f8fa;white-space:nowrap;`;
 
       const wellDisplay = submission.well_name
@@ -111,17 +111,17 @@ export async function POST(request: NextRequest) {
               <tr><td style="${th}">Search Key</td><td style="${td}">${submission.search_key || '\u2014'}</td></tr>
               <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '\u2014'}</td></tr>
             </table>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
               <tr>
-                <td style="background: #0078d4; border-radius: 50px; text-align: center;">
+                <td style="background-color:#1a2332; border-radius:8px; text-align:center;">
                   <!--[if mso]>
-                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="50%" strokecolor="#0078d4" fillcolor="#0078d4">
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:44px;v-text-anchor:middle;width:160px;" arcsize="18%" fillcolor="#1a2332" stroke="f">
                   <w:anchorlock/>
-                  <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry &rarr;</center>
+                  <center style="color:#ffffff;font-family:'Segoe UI',Tahoma,sans-serif;font-size:14px;font-weight:bold;">View Entry &rarr;</center>
                   </v:roundrect>
                   <![endif]-->
                   <!--[if !mso]><!-->
-                  <a href="${detailLink}" style="display: inline-block; padding: 14px 32px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; letter-spacing: 0.3px; mso-hide: all;">View Entry &nbsp;&rarr;</a>
+                  <a href="${detailLink}" target="_blank" style="display:inline-block;background-color:#1a2332;color:#ffffff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;line-height:1;">View Entry &rarr;</a>
                   <!--<![endif]-->
                 </td>
               </tr>
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
 // Helper: send "Request Completed" email for a transfer log record
 async function sendCompletionEmail(sub: any, supabase: any) {
   try {
-    const td = 'padding:6px 10px;border:1px solid #d4dae3;font-size:13px;';
+    const td = 'padding:4px 10px;border:1px solid #d4dae3;font-size:13px;line-height:1.3;mso-line-height-rule:exactly;';
     const th = `${td}font-weight:600;background:#f7f8fa;white-space:nowrap;`;
 
     const wellDisplay = sub.well_name
@@ -203,17 +203,17 @@ async function sendCompletionEmail(sub: any, supabase: any) {
             <tr><td style="${th}">Search Key</td><td style="${td}">${sub.search_key || '\u2014'}</td></tr>
             <tr><td style="${th}">Notes</td><td style="${td}">${sub.notes || '\u2014'}</td></tr>
           </table>
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
             <tr>
-              <td style="background: #0078d4; border-radius: 50px; text-align: center;">
+              <td style="background-color:#1a2332; border-radius:8px; text-align:center;">
                 <!--[if mso]>
-                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="50%" strokecolor="#0078d4" fillcolor="#0078d4">
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:44px;v-text-anchor:middle;width:160px;" arcsize="18%" fillcolor="#1a2332" stroke="f">
                 <w:anchorlock/>
-                <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry &rarr;</center>
+                <center style="color:#ffffff;font-family:'Segoe UI',Tahoma,sans-serif;font-size:14px;font-weight:bold;">View Entry &rarr;</center>
                 </v:roundrect>
                 <![endif]-->
                 <!--[if !mso]><!-->
-                <a href="${detailLink}" style="display: inline-block; padding: 14px 32px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; letter-spacing: 0.3px; mso-hide: all;">View Entry &nbsp;&rarr;</a>
+                <a href="${detailLink}" target="_blank" style="display:inline-block;background-color:#1a2332;color:#ffffff;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:8px;line-height:1;">View Entry &rarr;</a>
                 <!--<![endif]-->
               </td>
             </tr>

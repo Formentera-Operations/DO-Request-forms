@@ -2749,7 +2749,7 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
   const [submissions, setSubmissions] = useState<TransferLogSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<SubmissionFilters>({
-    search: '', status: '', createdBy: '', dateFrom: '', dateTo: '',
+    search: '', status: '', createdBy: '', dateFrom: '', dateTo: '', accountingGroup: '',
   });
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [bulkStatus, setBulkStatus] = useState('');
@@ -2819,6 +2819,7 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
         return false;
     }
     if (filters.status && s.completion_status !== filters.status) return false;
+    if (filters.accountingGroup && s.accounting_group !== filters.accountingGroup) return false;
     if (filters.createdBy && s.created_by !== filters.createdBy) return false;
     if (filters.dateFrom) {
       const rd = new Date(s.request_date).toISOString().slice(0, 10);
@@ -2834,11 +2835,12 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
   const uniqueUsers = [...new Set(submissions.map((s) => s.created_by))].sort();
 
   const clearFilters = () =>
-    setFilters({ search: '', status: '', createdBy: '', dateFrom: '', dateTo: '' });
+    setFilters({ search: '', status: '', createdBy: '', dateFrom: '', dateTo: '', accountingGroup: '' });
 
   const activeFilterTags = [
     filters.search && { label: `Search: ${filters.search}`, key: 'search' as const },
     filters.status && { label: `Status: ${filters.status}`, key: 'status' as const },
+    filters.accountingGroup && { label: `Group: ${filters.accountingGroup}`, key: 'accountingGroup' as const },
     filters.createdBy && { label: `By: ${filters.createdBy.split('@')[0]}`, key: 'createdBy' as const },
     filters.dateFrom && { label: `From: ${formatDate(filters.dateFrom)}`, key: 'dateFrom' as const },
     filters.dateTo && { label: `To: ${formatDate(filters.dateTo)}`, key: 'dateTo' as const },
@@ -3012,6 +3014,14 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
               <option value="Pending">Pending</option>
               <option value="Complete">Complete</option>
               <option value="Request Invalidated">Request Invalidated</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <span className="filter-label">Accounting Group</span>
+            <select className="filter-select" value={filters.accountingGroup || ''} onChange={(e) => setFilters((f) => ({ ...f, accountingGroup: e.target.value }))}>
+              <option value="">All Groups</option>
+              <option value="JIB">JIB</option>
+              <option value="Revenue">Revenue</option>
             </select>
           </div>
           <div className="filter-group">

@@ -73,4 +73,5 @@ export interface SubmissionFilters {
   createdBy: string;
   dateFrom: string;
   dateTo: string;
+  accountingGroup?: string;
 }

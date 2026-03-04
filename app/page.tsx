@@ -247,16 +247,25 @@ export default function VoidChecksPage() {
   const menuRef = useRef<HTMLDivElement>(null);
   const [deepLinkId, setDeepLinkId] = useState<string | null>(null);
 
-  // Handle deep link URL params: ?app=transfer-log&id=xxx
+  // Handle deep link URL params: ?app=<app>&id=xxx
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const app = params.get('app');
     const id = params.get('id');
-    if (app === 'transfer-log') {
+    if (app === 'void-checks') {
+      setActiveApp('void-checks');
+      setVcTab('submissions');
+      if (id) setDeepLinkId(id);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (app === 'interest-tracker') {
+      setActiveApp('interest-tracker');
+      setItTab('submissions');
+      if (id) setDeepLinkId(id);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (app === 'transfer-log') {
       setActiveApp('transfer-log');
       setTlTab('submissions');
       if (id) setDeepLinkId(id);
-      // Clean URL without reload
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
@@ -339,7 +348,7 @@ export default function VoidChecksPage() {
           </div>
         ) : (
           <div className="content-area wide">
-            <SubmissionsView />
+            <SubmissionsView openId={deepLinkId} onOpenIdHandled={() => setDeepLinkId(null)} />
           </div>
         )
       ) : activeApp === 'interest-tracker' ? (
@@ -349,7 +358,7 @@ export default function VoidChecksPage() {
           </div>
         ) : (
           <div className="content-area wide">
-            <InterestTrackerSubmissionsView />
+            <InterestTrackerSubmissionsView openId={deepLinkId} onOpenIdHandled={() => setDeepLinkId(null)} />
           </div>
         )
       ) : (
@@ -668,7 +677,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
 /* ============================================================
    Submissions View — filters, bulk actions, detail/edit modal
    ============================================================ */
-function SubmissionsView() {
+function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; onOpenIdHandled?: () => void }) {
   const [submissions, setSubmissions] = useState<VoidCheckSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<SubmissionFilters>({
@@ -778,6 +787,15 @@ function SubmissionsView() {
   }, []);
 
   useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
+
+  // Auto-open detail from deep link
+  useEffect(() => {
+    if (openId && submissions.length > 0 && !loading) {
+      const idx = submissions.findIndex((s) => s.id === openId);
+      if (idx !== -1) setDetailIndex(idx);
+      onOpenIdHandled?.();
+    }
+  }, [openId, submissions, loading, onOpenIdHandled]);
 
   // Filtering
   const filtered = submissions.filter((s) => {
@@ -1916,7 +1934,7 @@ function InterestTrackerForm({ onSuccess, userEmail }: { onSuccess: () => void; 
 /* ============================================================
    Interest Tracker — Submissions View
    ============================================================ */
-function InterestTrackerSubmissionsView() {
+function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; onOpenIdHandled?: () => void }) {
   const [submissions, setSubmissions] = useState<InterestTrackerSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<SubmissionFilters>({
@@ -1968,6 +1986,15 @@ function InterestTrackerSubmissionsView() {
   }, []);
 
   useEffect(() => { fetchSubmissions(); }, [fetchSubmissions]);
+
+  // Auto-open detail from deep link
+  useEffect(() => {
+    if (openId && submissions.length > 0 && !loading) {
+      const idx = submissions.findIndex((s) => s.id === openId);
+      if (idx !== -1) setDetailIndex(idx);
+      onOpenIdHandled?.();
+    }
+  }, [openId, submissions, loading, onOpenIdHandled]);
 
   // Filtering
   const filtered = submissions.filter((s) => {

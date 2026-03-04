@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
         ? `${submission.owner_number} \u2013 ${submission.owner_name}`
         : submission.owner_number;
 
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://do-request-forms.vercel.app';
+      const detailLink = `${appUrl}?app=interest-tracker&id=${data.id}`;
+
       await sendMail({
         to: submission.created_by,
         subject: `Interest Tracker \u2014 ${ownerDisplay}`,
@@ -101,6 +104,7 @@ export async function POST(request: NextRequest) {
               <tr><td style="${th}">Amount Due</td><td style="${td}">${formatCurrency(submission.amount_due)}</td></tr>
               <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '\u2014'}</td></tr>
             </table>
+            <p><a href="${detailLink}" style="display: inline-block; padding: 10px 20px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif;">View Entry</a></p>
             <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
             <p style="font-size: 11px; color: #8c93a3;">
               This is an automated confirmation from the DO Request Forms App.

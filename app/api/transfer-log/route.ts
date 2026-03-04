@@ -111,7 +111,13 @@ export async function POST(request: NextRequest) {
               <tr><td style="${th}">Search Key</td><td style="${td}">${submission.search_key || '\u2014'}</td></tr>
               <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '\u2014'}</td></tr>
             </table>
-            <p><a href="${detailLink}" style="display: inline-block; padding: 10px 20px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif;">View Entry</a></p>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 16px 0;">
+              <tr>
+                <td align="center" bgcolor="#2b579a" style="background-color:#2b579a; mso-padding-alt:12px 24px;">
+                  <a href="${detailLink}" target="_blank" style="display:inline-block; background-color:#2b579a; color:#ffffff; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; font-weight:600; text-decoration:none; padding:12px 24px; mso-text-raise:0pt;">View Entry &#8594;</a>
+                </td>
+              </tr>
+            </table>
             <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
             <p style="font-size: 11px; color: #8c93a3;">
               This is an automated confirmation from the DO Request Forms App.
@@ -190,7 +196,13 @@ async function sendCompletionEmail(sub: any, supabase: any) {
             <tr><td style="${th}">Search Key</td><td style="${td}">${sub.search_key || '\u2014'}</td></tr>
             <tr><td style="${th}">Notes</td><td style="${td}">${sub.notes || '\u2014'}</td></tr>
           </table>
-          <p><a href="${detailLink}" style="display: inline-block; padding: 10px 20px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif;">View Entry</a></p>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 16px 0;">
+            <tr>
+              <td align="center" bgcolor="#2b579a" style="background-color:#2b579a; mso-padding-alt:12px 24px;">
+                <a href="${detailLink}" target="_blank" style="display:inline-block; background-color:#2b579a; color:#ffffff; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:14px; font-weight:600; text-decoration:none; padding:12px 24px; mso-text-raise:0pt;">View Entry &#8594;</a>
+              </td>
+            </tr>
+          </table>
           <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
           <p style="font-size: 11px; color: #8c93a3;">
             This is an automated confirmation from the DO Request Forms App.

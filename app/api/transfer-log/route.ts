@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const td = 'padding:4px 10px;border:1px solid #d4dae3;font-size:13px;line-height:1.3;mso-line-height-rule:exactly;';
+      const td = 'padding:6px 10px;border:1px solid #d4dae3;font-size:13px;';
       const th = `${td}font-weight:600;background:#f7f8fa;white-space:nowrap;`;
 
       const wellDisplay = submission.well_name
@@ -103,29 +103,15 @@ export async function POST(request: NextRequest) {
         subject: `Transfer Log Form - ${wellDisplay}`,
         html: `
           <div style="font-family: Segoe UI, Arial, sans-serif; max-width: 480px;">
-            <p style="font-size: 14px; color: #1a1a1a;">Hello,</p>
-            <p style="font-size: 14px; color: #1a1a1a;">Land has entered a Reverse/Rebook to be processed.</p>
+            <h2 style="color: #0078d4; margin-bottom: 4px; font-size: 18px;">Transfer Log Submitted</h2>
+            <p style="color: #5a6275; margin-top: 0; font-size: 13px;">Land has entered a Reverse/Rebook to be processed.</p>
             <table style="border-collapse: collapse; margin: 16px 0;">
               <tr><td style="${th}">Accounting Group</td><td style="${td}">${submission.accounting_group}</td></tr>
               <tr><td style="${th}">Well Code / Name</td><td style="${td}">${wellDisplay}</td></tr>
               <tr><td style="${th}">Search Key</td><td style="${td}">${submission.search_key || '\u2014'}</td></tr>
               <tr><td style="${th}">Notes</td><td style="${td}">${submission.notes || '\u2014'}</td></tr>
             </table>
-            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
-              <tr>
-                <td style="background: #0078d4; border-radius: 50px; text-align: center;">
-                  <!--[if mso]>
-                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="50%" strokecolor="#0078d4" fillcolor="#0078d4">
-                  <w:anchorlock/>
-                  <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry &rarr;</center>
-                  </v:roundrect>
-                  <![endif]-->
-                  <!--[if !mso]><!-->
-                  <a href="${detailLink}" style="display: inline-block; padding: 14px 32px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; letter-spacing: 0.3px; mso-hide: all;">View Entry &nbsp;&rarr;</a>
-                  <!--<![endif]-->
-                </td>
-              </tr>
-            </table>
+            <p><a href="${detailLink}" style="display: inline-block; padding: 10px 20px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif;">View Entry</a></p>
             <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
             <p style="font-size: 11px; color: #8c93a3;">
               This is an automated confirmation from the DO Request Forms App.
@@ -151,7 +137,7 @@ export async function POST(request: NextRequest) {
 // Helper: send "Request Completed" email for a transfer log record
 async function sendCompletionEmail(sub: any, supabase: any) {
   try {
-    const td = 'padding:4px 10px;border:1px solid #d4dae3;font-size:13px;line-height:1.3;mso-line-height-rule:exactly;';
+    const td = 'padding:6px 10px;border:1px solid #d4dae3;font-size:13px;';
     const th = `${td}font-weight:600;background:#f7f8fa;white-space:nowrap;`;
 
     const wellDisplay = sub.well_name
@@ -196,28 +182,15 @@ async function sendCompletionEmail(sub: any, supabase: any) {
       subject: `Request Completed - ${wellDisplay}`,
       html: `
         <div style="font-family: Segoe UI, Arial, sans-serif; max-width: 480px;">
-          <p style="font-size: 14px; color: #1a1a1a;">Request Completed.</p>
+          <h2 style="color: #0078d4; margin-bottom: 4px; font-size: 18px;">Request Completed</h2>
+          <p style="color: #5a6275; margin-top: 0; font-size: 13px;">The following transfer log entry has been completed.</p>
           <table style="border-collapse: collapse; margin: 16px 0;">
             <tr><td style="${th}">Accounting Group</td><td style="${td}">${sub.accounting_group}</td></tr>
             <tr><td style="${th}">Well Code / Name</td><td style="${td}">${wellDisplay}</td></tr>
             <tr><td style="${th}">Search Key</td><td style="${td}">${sub.search_key || '\u2014'}</td></tr>
             <tr><td style="${th}">Notes</td><td style="${td}">${sub.notes || '\u2014'}</td></tr>
           </table>
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px 0;">
-            <tr>
-              <td style="background: #0078d4; border-radius: 50px; text-align: center;">
-                <!--[if mso]>
-                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${detailLink}" style="height:48px;v-text-anchor:middle;width:200px;" arcsize="50%" strokecolor="#0078d4" fillcolor="#0078d4">
-                <w:anchorlock/>
-                <center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;">View Entry &rarr;</center>
-                </v:roundrect>
-                <![endif]-->
-                <!--[if !mso]><!-->
-                <a href="${detailLink}" style="display: inline-block; padding: 14px 32px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif; letter-spacing: 0.3px; mso-hide: all;">View Entry &nbsp;&rarr;</a>
-                <!--<![endif]-->
-              </td>
-            </tr>
-          </table>
+          <p><a href="${detailLink}" style="display: inline-block; padding: 10px 20px; background: #0078d4; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 13px; font-weight: 600; font-family: Segoe UI, Arial, sans-serif;">View Entry</a></p>
           <hr style="border: none; border-top: 1px solid #d4dae3; margin: 16px 0;" />
           <p style="font-size: 11px; color: #8c93a3;">
             This is an automated confirmation from the DO Request Forms App.

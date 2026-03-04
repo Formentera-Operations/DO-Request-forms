@@ -1154,7 +1154,7 @@ function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; 
                   <th>Owner # - Name</th>
                   <th>Check Date</th>
                   <th>Request Source</th>
-                  <th style={{ width: notesWidth, minWidth: 80, position: 'relative' }}>
+                  <th style={{ width: notesWidth, minWidth: 80 }}>
                     Notes
                     <span
                       className="col-resize-handle"
@@ -2274,7 +2274,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
                   <th>Interest Start Date (Prod)</th>
                   <th>Interest End Date (Prod)</th>
                   <th>Amount Due</th>
-                  <th style={{ width: notesWidth, minWidth: 80, position: 'relative' }}>
+                  <th style={{ width: notesWidth, minWidth: 80 }}>
                     Notes
                     <span className="col-resize-handle" onMouseDown={onNotesResizeStart} />
                   </th>
@@ -3096,7 +3096,7 @@ function TransferLogSubmissionsView({ openId, onOpenIdHandled }: { openId?: stri
                   <th>Request Date</th>
                   <th>Completion Status</th>
                   <th>Sign-Off Status</th>
-                  <th style={{ width: notesWidth, minWidth: 80, position: 'relative' }}>
+                  <th style={{ width: notesWidth, minWidth: 80 }}>
                     Notes
                     <span className="col-resize-handle" onMouseDown={onNotesResizeStart} />
                   </th>

@@ -2222,9 +2222,10 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
           </div>
           <button className="filter-clear" onClick={clearFilters}>Clear All</button>
           <button className="export-btn" onClick={() => {
-            const headers = ['Owner # - Name', '% Interest Charged', 'Interest Start Date', 'Interest End Date', 'Amount Due', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
+            const headers = ['Owner #', 'Owner Name', '% Interest Charged', 'Interest Start Date', 'Interest End Date', 'Amount Due', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
             const rows = filtered.map((s) => [
-              ownerDisp(s),
+              s.owner_number,
+              s.owner_name || '',
               `${s.interest_rate}%`,
               s.interest_start_date || '',
               s.interest_end_date || '',
@@ -2236,7 +2237,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
               s.created_by,
             ]);
             exportToExcel('interest-tracker.xlsx', headers, rows, [
-              { col: 7, options: ['Pending', 'Complete', 'Request Invalidated'] },
+              { col: 8, options: ['Pending', 'Complete', 'Request Invalidated'] },
             ]);
           }}>
             Export
@@ -2272,7 +2273,8 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
                       onChange={toggleAll} />
                   </th>
                   <th>#</th>
-                  <th>Owner # - Name</th>
+                  <th>Owner #</th>
+                  <th>Owner Name</th>
                   <th>% Interest Charged</th>
                   <th>Interest Start Date (Prod)</th>
                   <th>Interest End Date (Prod)</th>
@@ -2297,7 +2299,8 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
                         <input type="checkbox" className="row-checkbox" checked={selectedRows.has(s.id!)} onChange={() => toggleRow(s.id!)} />
                       </td>
                       <td style={{ color: 'var(--text-muted)' }} onClick={() => openDetail(submissions.indexOf(s))}>{i + 1}</td>
-                      <td style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{ownerDisp(s)}</td>
+                      <td style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_number}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_name || '\u2014'}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_rate}%</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_start_date || '\u2014'}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{s.interest_end_date || '\u2014'}</td>

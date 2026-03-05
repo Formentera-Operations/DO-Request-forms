@@ -1089,11 +1089,12 @@ function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; 
             Clear All
           </button>
           <button className="export-btn" onClick={() => {
-            const headers = ['Check #', 'Check Amount', 'Owner # - Name', 'Check Date', 'Request Source', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
+            const headers = ['Check #', 'Check Amount', 'Owner #', 'Owner Name', 'Check Date', 'Request Source', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
             const rows = filtered.map((s) => [
               s.check_number,
               formatCurrency(s.check_amount),
-              s.owner_name ? `${s.owner_number} \u2013 ${s.owner_name}` : s.owner_number,
+              s.owner_number,
+              s.owner_name || '',
               formatDate(s.check_date),
               s.request_source || '',
               s.notes || '',
@@ -1103,7 +1104,7 @@ function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; 
               s.created_by,
             ]);
             exportToExcel('void-checks.xlsx', headers, rows, [
-              { col: 7, options: ['Pending', 'Complete', 'Request Invalidated'] },
+              { col: 8, options: ['Pending', 'Complete', 'Request Invalidated'] },
             ]);
           }}>
             Export
@@ -1151,7 +1152,8 @@ function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; 
                   <th>#</th>
                   <th>Check #</th>
                   <th>Check Amount</th>
-                  <th>Owner # - Name</th>
+                  <th>Owner #</th>
+                  <th>Owner Name</th>
                   <th>Check Date</th>
                   <th>Request Source</th>
                   <th style={{ width: notesWidth, minWidth: 80 }}>
@@ -1184,7 +1186,8 @@ function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; 
                       <td style={{ color: 'var(--text-muted)' }} onClick={() => openDetail(submissions.indexOf(s))}>{i + 1}</td>
                       <td style={{ fontWeight: 600 }} onClick={() => openDetail(submissions.indexOf(s))}>{s.check_number}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatCurrency(s.check_amount)}</td>
-                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_name ? `${s.owner_number} \u2013 ${s.owner_name}` : s.owner_number}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_number}</td>
+                      <td onClick={() => openDetail(submissions.indexOf(s))}>{s.owner_name || '\u2014'}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{formatDate(s.check_date)}</td>
                       <td onClick={() => openDetail(submissions.indexOf(s))}>{s.request_source || '—'}</td>
                       <td

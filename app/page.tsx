@@ -1693,10 +1693,8 @@ function InterestTrackerForm({ onSuccess, userEmail }: { onSuccess: () => void; 
     if (!interestRate) { alert('Please enter % Interest Charged'); return; }
     if (!interestStartDate) { alert('Please enter Interest Start Date'); return; }
     if (!interestEndDate) { alert('Please enter Interest End Date'); return; }
-    if (!amountDue) { alert('Please enter Amount Due'); return; }
-
-    const amt = parseFloat(amountDue);
-    if (isNaN(amt) || amt < 0) { alert('Please enter a valid Amount Due'); return; }
+    const amt = amountDue ? parseFloat(amountDue) : NaN;
+    if (amountDue && (isNaN(amt) || amt < 0)) { alert('Please enter a valid Amount of Late Payment'); return; }
 
     setSubmitting(true);
     try {
@@ -1836,10 +1834,10 @@ function InterestTrackerForm({ onSuccess, userEmail }: { onSuccess: () => void; 
               />
             </div>
 
-            {/* Amount Due */}
+            {/* Amount of Late Payment */}
             <div className="form-group">
               <label className="form-label">
-                Amount Due <span className="required">*</span>
+                Amount of Late Payment
               </label>
               <input
                 type="number"
@@ -1850,7 +1848,6 @@ function InterestTrackerForm({ onSuccess, userEmail }: { onSuccess: () => void; 
                 value={amountDue}
                 onChange={sanitizeAmount}
                 onBlur={formatAmount}
-                required
               />
             </div>
 
@@ -2101,7 +2098,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
   };
 
   const handleDelete = async (sub: InterestTrackerSubmission) => {
-    if (!confirm(`Are you sure you want to delete this entry?\n\nOwner: ${sub.owner_number} — Amount Due: ${formatCurrency(sub.amount_due)}\n\nThis action cannot be undone.`))
+    if (!confirm(`Are you sure you want to delete this entry?\n\nOwner: ${sub.owner_number} — Amount of Late Payment: ${formatCurrency(sub.amount_due)}\n\nThis action cannot be undone.`))
       return;
     try {
       const res = await fetch('/api/interest-tracker', {
@@ -2222,7 +2219,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
           </div>
           <button className="filter-clear" onClick={clearFilters}>Clear All</button>
           <button className="export-btn" onClick={() => {
-            const headers = ['Owner #', 'Owner Name', '% Interest Charged', 'Interest Start Date', 'Interest End Date', 'Amount Due', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
+            const headers = ['Owner #', 'Owner Name', '% Interest Charged', 'Interest Start Date', 'Interest End Date', 'Amount of Late Payment', 'Notes', 'Request Date', 'Completion Status', 'Sign-Off Date', 'Created By'];
             const rows = filtered.map((s) => [
               s.owner_number,
               s.owner_name || '',
@@ -2278,7 +2275,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
                   <th>% Interest Charged</th>
                   <th>Interest Start Date (Prod)</th>
                   <th>Interest End Date (Prod)</th>
-                  <th>Amount Due</th>
+                  <th>Amount of Late Payment</th>
                   <th style={{ width: notesWidth, minWidth: 80 }}>
                     Notes
                     <span className="col-resize-handle" onMouseDown={onNotesResizeStart} />
@@ -2381,7 +2378,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
                       onChange={(e) => setEditData((d) => ({ ...d, interest_end_date: e.target.value }))} />
                   </div>
                   <div className="detail-field">
-                    <div className="detail-label">Amount Due</div>
+                    <div className="detail-label">Amount of Late Payment</div>
                     <input type="number" step="0.01" min="0" className="edit-input"
                       value={editData.amount_due?.toFixed(2) ?? ''}
                       onChange={(e) => {
@@ -2455,7 +2452,7 @@ function InterestTrackerSubmissionsView({ openId, onOpenIdHandled }: { openId?: 
                       <div className="detail-value">{detailSub.interest_end_date || '\u2014'}</div>
                     </div>
                     <div className="detail-field">
-                      <div className="detail-label">Amount Due</div>
+                      <div className="detail-label">Amount of Late Payment</div>
                       <div className="detail-value">{formatCurrency(detailSub.amount_due)}</div>
                     </div>
                     <div className="detail-field">

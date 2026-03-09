@@ -144,9 +144,9 @@ export async function GET(request: NextRequest) {
       month: 'long',
       year: 'numeric',
     });
-    const filename = `Pending_Interest_Tracker_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-18.xlsx`;
+    const filename = `Pending_Interest_Tracker_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-15.xlsx`;
 
-    const recipients = process.env.REPORT_RECIPIENTS || '';
+    const recipients = process.env.INTEREST_REPORT_RECIPIENTS || '';
 
     if (!recipients) {
       console.error('No REPORT_RECIPIENTS configured');

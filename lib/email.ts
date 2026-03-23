@@ -6,7 +6,7 @@
 const TENANT_ID = process.env.MS_TENANT_ID!;
 const CLIENT_ID = process.env.MS_CLIENT_ID!;
 const CLIENT_SECRET = process.env.MS_CLIENT_SECRET!;
-const SENDER = 'formsubmission@formenteraops.com';
+const SENDER = process.env.MS_SENDER_EMAIL!;
 
 interface EmailAttachment {
   filename: string;

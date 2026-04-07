@@ -163,15 +163,14 @@ async function sendCompletionEmail(sub: any, supabase: any) {
       }
     }
 
-    // Determine recipients: submitter + accounting group emails
-    const groupEmails =
-      sub.accounting_group === 'JIB'
-        ? process.env.TRANSFER_JIB_EMAILS || ''
-        : process.env.TRANSFER_REVENUE_EMAILS || '';
+    // Determine recipients: submitter + both JIB and Revenue group emails
+    const jibEmails = (process.env.TRANSFER_JIB_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
+    const revenueEmails = (process.env.TRANSFER_REVENUE_EMAILS || '').split(',').map((e: string) => e.trim()).filter(Boolean);
 
     const recipients = [
       sub.created_by,
-      ...groupEmails.split(',').map((e: string) => e.trim()).filter(Boolean),
+      ...jibEmails,
+      ...revenueEmails,
     ].join(',');
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://do-request-forms.vercel.app';

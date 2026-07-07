@@ -589,6 +589,7 @@ function NewEntryForm({ onSuccess, userEmail }: { onSuccess: () => void; userEma
                 <option value="" disabled>Select a source...</option>
                 <option value="Returned Check">Returned Check</option>
                 <option value="Void Request">Void Request</option>
+                <option value="Transfer/Voucher Void Request">Transfer/Voucher Void Request</option>
               </select>
             </div>
 
@@ -1315,6 +1316,7 @@ function SubmissionsView({ openId, onOpenIdHandled }: { openId?: string | null; 
                       <option value="" disabled>Select a source...</option>
                       <option value="Returned Check">Returned Check</option>
                       <option value="Void Request">Void Request</option>
+                      <option value="Transfer/Voucher Void Request">Transfer/Voucher Void Request</option>
                     </select>
                   </div>
                   <div className="detail-field">

@@ -9,12 +9,21 @@ export async function GET() {
   try {
     const supabase = createServerSupabaseClient();
 
-    const { data, error } = await supabase
-      .from(TABLE_NAME)
-      .select('*')
-      .order('request_date', { ascending: false });
+    // Paged — Supabase caps each request at 1000 rows
+    const PAGE_SIZE = 1000;
+    const data: any[] = [];
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data: page, error } = await supabase
+        .from(TABLE_NAME)
+        .select('*')
+        .order('request_date', { ascending: false })
+        .order('id')
+        .range(from, from + PAGE_SIZE - 1);
 
-    if (error) throw error;
+      if (error) throw error;
+      data.push(...page);
+      if (page.length < PAGE_SIZE) break;
+    }
 
     return NextResponse.json(data);
   } catch (error: any) {

@@ -98,18 +98,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No data rows found in spreadsheet' }, { status: 400 });
     }
 
-    // Fetch current DB records
-    const { data: dbRecords, error: dbError } = await supabase
-      .from(TABLE_NAME)
-      .select('id, check_number, notes, completion_status');
+    // Fetch current DB records (paged — Supabase caps each request at 1000 rows)
+    const PAGE_SIZE = 1000;
+    const dbRecords: any[] = [];
+    for (let from = 0; ; from += PAGE_SIZE) {
+      const { data, error: dbError } = await supabase
+        .from(TABLE_NAME)
+        .select('id, check_number, notes, completion_status')
+        .order('id')
+        .range(from, from + PAGE_SIZE - 1);
 
-    if (dbError) throw dbError;
+      if (dbError) throw dbError;
+      dbRecords.push(...data);
+      if (data.length < PAGE_SIZE) break;
+    }
 
     // Build lookup maps
-    const dbById = new Map(dbRecords!.map((r: any) => [r.id, r]));
+    const dbById = new Map(dbRecords.map((r: any) => [r.id, r]));
     const dbByCheckNumber = new Map<string, any[]>();
-    for (const r of dbRecords!) {
-      const cn = r.check_number;
+    for (const r of dbRecords) {
+      const cn = String(r.check_number ?? '').trim();
       if (!dbByCheckNumber.has(cn)) dbByCheckNumber.set(cn, []);
       dbByCheckNumber.get(cn)!.push(r);
     }
